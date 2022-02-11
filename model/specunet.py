@@ -366,8 +366,6 @@ class MCS_SpecUNet(pl.LightningModule):
     
     def training_step(self, batch, batch_idx):
         self.train()
-        if batch_idx == 0:
-            self.print("Verify Sequence:", batch["audio_name"])
         self.device_type = next(self.parameters()).device
         if not self.check_flag:
             self.check_flag = True
@@ -430,9 +428,9 @@ class MCS_SpecUNet(pl.LightningModule):
         def lr_foo(epoch):       
             if epoch < 3:
                 # warm up lr
-                lr_scale = 0.1 ** (3 - epoch)
+                lr_scale = 1
             else:
-                lr_scale = 0.1 ** (bisect.bisect_left(self.config.lr_scheduler_epoch, epoch))
+                lr_scale = 0.5 ** (bisect.bisect_left(self.config.lr_scheduler_epoch, epoch))
 
             return lr_scale
         scheduler = optim.lr_scheduler.LambdaLR(

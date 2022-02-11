@@ -49,7 +49,6 @@ class AudioTrackDataset(Dataset):
     def generate_queue(self):
         if not self.eval_mode:
             random.shuffle(self.idxs)
-            print("Generate Sequence:", self.idxs[:5])
 
     def __getitem__(self, index):
         """Load waveform and target of an audio clip.

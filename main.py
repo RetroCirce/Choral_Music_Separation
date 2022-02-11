@@ -26,6 +26,7 @@ import model_config as config
 from utils import collect_fn, dump_config, create_folder, load_audio
 from data_generator import AudioTrackDataset
 from model.specunet import MCS_SpecUNet
+from model.convtasnet import MCS_ConvTasNet
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -259,7 +260,7 @@ def train():
     dataset = AudioTrackDataset(
         idxs=train_idxs,
         config=config,
-        factor=3,
+        factor=20,
         eval_mode=False
     )
     eval_dataset = AudioTrackDataset(
@@ -290,10 +291,11 @@ def train():
         accelerator = "ddp" if device_num > 1 else None,
         resume_from_checkpoint = None, #config.resume_checkpoint,
         replace_sampler_ddp = False,
-        gradient_clip_val=1.0,
-        num_sanity_val_steps = 0,
+        gradient_clip_val=5.0,
+        num_sanity_val_steps = 0
     )
-    model = MCS_SpecUNet(
+    model_type = eval(config.model_type)
+    model = model_type(
         channels=1,
         config=config,
         dataset=dataset

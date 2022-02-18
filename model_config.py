@@ -2,16 +2,18 @@
 # Ke Chen
 # 2022.02.05
 
-exp_name = "piano_noire_bass_tasnet"
+exp_name = "piano_noire_tenor_specunet"
 workspace = "/home/kechen/Research/KE_MCS/"
+test_output = "wav_output"
+
 
 dataset_path = "data/"
 dataset_name = "piano_noire"
 split_file = "idx_string_ni.npy"
-sep_track = "bass"
-model_type = "MCS_SpecUNet"  # "MCS_ConvTasNet" # "MCS_SpecUNet"
+sep_track = "tenor"
+model_type = "MCS_SpecUNet" # "MCS_ConvTasNet" # "MCS_SpecUNet"
 
-resume_checkpoint = None
+resume_checkpoint = "/home/kechen/Research/KE_MCS/results/piano_noire_bass_tasnet/checkpoint/lightning_logs/version_1/checkpoints/l-epoch=39-mean_sdr=10.285-median_sdr=11.097.ckpt"
 
 
 loss_type = "mae"   # "si_snr" # "mae"

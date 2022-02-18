@@ -452,17 +452,18 @@ class MCS_ConvTasNet(pl.LightningModule):
             self.parameters(), lr = self.config.learning_rate, 
             betas = (0.9, 0.999), eps = 1e-08, weight_decay = 0., amsgrad = True
         )
-        def lr_foo(epoch):       
-            if epoch < 3:
-                # warm up lr
-                lr_scale = 1
-            else:
-                lr_scale = 0.5 ** (bisect.bisect_left(self.config.lr_scheduler_epoch, epoch))
-            return lr_scale
-        scheduler = optim.lr_scheduler.LambdaLR(
-            optimizer,
-            lr_lambda=lr_foo
-        )
 
-        return [optimizer], [scheduler]
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer=optimizer, mode="max",
+            factor=0.5, patience=2,verbose=True
+        )
+        cop_dict = {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "monitor": "mean_sdr"
+            }
+        } 
+
+        return cop_dict
 

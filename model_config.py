@@ -2,7 +2,7 @@
 # Ke Chen
 # 2022.02.05
 
-exp_name = "string_ni_bass_tasnet"
+exp_name = "string_ni_bass_specnet"
 workspace = "/home/kechen/Research/KE_MCS/"
 
 dataset_path = "data/"
@@ -27,7 +27,7 @@ latent_dim = 2048 # deprecated
  
 sample_rate = 22050
 clip_samples = sample_rate * 10 # audio_set 10-sec clip
-segment_frames = 200
+segment_frames = 100
 hop_samples = 441
 random_seed = 12412 # 444612 1536123 12412
 

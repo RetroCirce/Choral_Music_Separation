@@ -28,7 +28,6 @@ class AudioTrackDataset(Dataset):
             h5_file_mixture = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + ".h5")
             if os.path.exists(h5_file_mixture):
                 self.idxs.append(file_idx)
-
         self.total_size = int(len(self.idxs) * factor)
         logging.info("total dataset size: %d" %(self.total_size))
 
@@ -69,7 +68,9 @@ class AudioTrackDataset(Dataset):
         with h5py.File(h5_file_source, "r") as hr:
             source = hr["waveform"][:]
         if self.eval_mode:
-            bgn_f, end_f = self.sample_range[file_idx]
+            bgn_f = 0
+            end_f = min(len(mixture), len(source)) # get the whole length
+            # bgn_f, end_f = self.sample_range[file_idx]
         else:
             bgn_f, end_f = get_segment_bgn_end_frames(min(len(mixture), len(source)), self.config.hop_samples * self.config.segment_frames)
         mixture = mixture[bgn_f:end_f]

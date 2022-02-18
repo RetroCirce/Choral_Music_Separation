@@ -61,7 +61,7 @@ class data_prep(pl.LightningDataModule):
         eval_loader = DataLoader(
             dataset = self.eval_dataset,
             num_workers = config.num_workers,
-            batch_size = config.batch_size // self.device_num,
+            batch_size = 1, # config.batch_size // self.device_num, for the sdr calculation on one song
             shuffle = False,
             sampler = eval_sampler,
             collate_fn = collect_fn
@@ -72,7 +72,7 @@ class data_prep(pl.LightningDataModule):
         test_loader = DataLoader(
             dataset = self.eval_dataset,
             num_workers = config.num_workers,
-            batch_size = config.batch_size // self.device_num,
+            batch_size = 1, # config.batch_size // self.device_num, for the sdr calculation on one song
             shuffle = False,
             sampler = test_sampler,
             collate_fn = collect_fn
@@ -98,8 +98,6 @@ def weight_average():
         assert model_ckpt_key.shape == model_ckpt[0][key].shape, "the shape is unmatched " + model_ckpt_key.shape + " " + model_ckpt[0][key].shape
         wa_ckpt["state_dict"][key] = model_ckpt_key
     torch.save(wa_ckpt, config.wa_model_path)
-
-
 
 def process_audio(process_main_track = False):
     dataset_path = os.path.join(config.dataset_path, config.dataset_name)
@@ -242,7 +240,8 @@ def train():
     idxs = np.load(os.path.join(config.dataset_path, config.split_file), allow_pickle = True)
     idxs = idxs.item()
     train_idxs = idxs["train"]
-    validate_idxs = idxs["validate"]
+    validate_idxs = idxs["train"][:30]
+    # validate_idxs = idxs["validate"]
     test_idxs = idxs["test"]
 
     # set exp folder
@@ -272,9 +271,9 @@ def train():
 
     audioset_data = data_prep(train_dataset=dataset,eval_dataset=eval_dataset,device_num=device_num, config=config)
     checkpoint_callback = ModelCheckpoint(
-        monitor = "mean_sdr",
+        monitor = "median_sdr",
         filename='l-{epoch:d}-{mean_sdr:.3f}-{median_sdr:.3f}',
-        save_top_k = 10,
+        save_top_k = 3,
         mode = "max"
     )
    

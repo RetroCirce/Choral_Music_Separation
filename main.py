@@ -26,7 +26,7 @@ import model_config as config
 from utils import collect_fn, dump_config, create_folder, load_audio
 from data_generator import AudioTrackDataset
 from model.specunet import MCS_SpecUNet
-from model.convtasnet import MCS_ConvTasNet
+from model.convtasnet_copy import MCS_ConvTasNet
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint

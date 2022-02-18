@@ -2,14 +2,14 @@
 # Ke Chen
 # 2022.02.05
 
-exp_name = "string_ni_bass_specnet"
+exp_name = "piano_noire_bass_tasnet"
 workspace = "/home/kechen/Research/KE_MCS/"
 
 dataset_path = "data/"
-dataset_name = "string_ni"
+dataset_name = "piano_noire"
 split_file = "idx_string_ni.npy"
 sep_track = "bass"
-model_type = "MCS_SpecUNet" # "MCS_ConvTasNet" # "MCS_SpecUNe"
+model_type = "MCS_SpecUNet"  # "MCS_ConvTasNet" # "MCS_SpecUNet"
 
 resume_checkpoint = None
 
@@ -18,8 +18,8 @@ loss_type = "mae"   # "si_snr" # "mae"
 
 debug = False
 
-batch_size = 4 * 2
-learning_rate = 1e-3 
+batch_size = 8 * 2
+learning_rate = 1e-3
 max_epoch = 100
 num_workers = 3
 lr_scheduler_epoch = [20, 40, 60]
@@ -33,10 +33,22 @@ random_seed = 12412 # 444612 1536123 12412
 
 # tasnet
 tasnet_enc_dim = 512
-tasnet_feature_dim = 128
+tasnet_filter_length = 20
 tasnet_win = 2
+tasnet_feature_dim = 128
+tasnet_hidden_dim = 512
 tasnet_kernel = 3
 tasnet_stack = 3
 tasnet_layer = 8
 tasnet_causal = False
 
+# recon wave
+recon_list = [
+    "data/string_ni/h5_file/chorale_001_bass.h5",
+    "data/string_ni/h5_file/chorale_001.h5"
+]
+
+output_list = [
+    "data/recon/chorale_001_bass.wav",
+    "data/recon/chorale_001.wav"
+]

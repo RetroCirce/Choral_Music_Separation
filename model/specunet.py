@@ -385,7 +385,6 @@ class MCS_SpecUNet(pl.LightningModule):
         self.dataset.generate_queue()
 
     def validation_step(self, batch, batch_idx):
-        sdr = []
         self.device_type = next(self.parameters()).device
         audio_len = len(batch["mixture"][0])
         sample_len = self.config.segment_frames * self.config.hop_samples

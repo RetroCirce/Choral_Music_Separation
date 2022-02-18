@@ -17,6 +17,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchlibrosa.stft import STFT, ISTFT, magphase
 import pytorch_lightning as pl
+import torch.distributed as dist
 
 from torch.autograd import Variable
 
@@ -370,35 +371,75 @@ class MCS_ConvTasNet(pl.LightningModule):
         self.dataset.generate_queue()
 
     def validation_step(self, batch, batch_idx):
-        sdr = []
         self.device_type = next(self.parameters()).device
+        audio_len = len(batch["mixture"][0])
+        sample_len = self.config.segment_frames * self.config.hop_samples
+        audio_len = (audio_len // sample_len) * sample_len
 
-        mixtures = np_to_pytorch(np.array(batch["mixture"]), self.device_type)
-        sources = np_to_pytorch(np.array(batch["source"])[:, :, None], self.device_type)
+        whole_mixture = batch["mixture"][0][:audio_len]
+        whole_source = batch["source"][0][:audio_len]
 
-        if len(mixtures) > 0:
-            # validate
-            batch_output_dict = self(mixtures) # B C T
-            preds = torch.permute(batch_output_dict, (0,2,1)) # B T C
-            sdr = evaluate_sdr(
-                ref = sources.data.cpu().numpy(), 
-                est = preds.data.cpu().numpy(),
-                class_ids = np.array([1] * len(sources)),
-                mix_type = "mixture"
-            )
+        split_mixtures = np.array(np.split(whole_mixture, audio_len // sample_len))
+        split_sources = np.array(np.split(whole_source, audio_len // sample_len))
+
+        sdr = []
+        # batch feed
+        batch_size = self.config.batch_size // torch.cuda.device_count()
+        for i in range(0, len(split_mixtures), batch_size):
+            mixtures = np_to_pytorch(split_mixtures[i:i + batch_size].copy(), self.device_type)
+            sources = np_to_pytorch(split_sources[i:i + batch_size].copy()[:, :, None], self.device_type)
+
+            if len(mixtures) > 0:
+                # validate
+                batch_output_dict = self(mixtures) # B C T
+                preds = torch.permute(batch_output_dict, (0,2,1)) # B T C
+                temp_sdr = evaluate_sdr(
+                    ref = sources.data.cpu().numpy(), 
+                    est = preds.data.cpu().numpy(),
+                    class_ids = np.array([1] * len(sources)),
+                    mix_type = "mixture"
+                )
+                sdr += temp_sdr
         return {"sdr": sdr}
 
     def validation_epoch_end(self, validation_step_outputs):
         self.device_type = next(self.parameters()).device
-        sdr = []
+        mean_sdr = []
+        median_sdr = []
         for d in validation_step_outputs:
-            sdr += [dd[0] for dd in d["sdr"]]
-            
-        mean_sdr = np.mean(np.array(sdr))
-        median_sdr = np.median(np.array(sdr))
-        
-        self.log("mean_sdr", mean_sdr, on_epoch = True, prog_bar=True, sync_dist=True)
-        self.log("median_sdr", median_sdr, on_epoch = True, prog_bar=True, sync_dist=True)
+            mean_sdr.append(np.mean([dd[0][0] for dd in d["sdr"]]))
+            median_sdr.append(np.median([dd[0][0] for dd in d["sdr"]]))
+        mean_sdr = np.array(mean_sdr)
+        median_sdr = np.array(median_sdr)
+        # ddp 
+        if torch.cuda.device_count() == 1:
+            self.print("--------Single GPU----------")
+            metric_mean_sdr = np.mean(mean_sdr)
+            metric_median_sdr = np.median(median_sdr)
+            self.log("mean_sdr", metric_mean_sdr, on_epoch = True, prog_bar=True, sync_dist=True)
+            self.log("median_sdr", metric_median_sdr, on_epoch = True, prog_bar=True, sync_dist=True)
+            self.print("Median SDR:", metric_median_sdr,"| Mean SDR:", metric_mean_sdr)
+        else:
+            mean_sdr = np_to_pytorch(mean_sdr, self.device_type)
+            median_sdr = np_to_pytorch(median_sdr, self.device_type)
+            gather_mean_sdr = [torch.zeros_like(mean_sdr) for _ in range(dist.get_world_size())]
+            gather_median_sdr = [torch.zeros_like(median_sdr) for _ in range(dist.get_world_size())]
+            dist.barrier()
+            dist.all_gather(gather_mean_sdr, mean_sdr)
+            dist.all_gather(gather_median_sdr, median_sdr)
+            metric_mean_sdr = 0.0
+            metric_median_sdr = 0.0
+            if dist.get_rank() == 0:
+                gather_mean_sdr = torch.cat(gather_mean_sdr, dim = 0).cpu().numpy()
+                gather_median_sdr = torch.cat(gather_median_sdr, dim = 0).cpu().numpy()
+                print(gather_mean_sdr.shape)
+                print(gather_median_sdr.shape)
+                metric_mean_sdr = np.mean(gather_mean_sdr)
+                metric_median_sdr = np.median(gather_median_sdr)
+            self.log("mean_sdr", metric_mean_sdr * float(dist.get_world_size()), on_epoch = True, prog_bar=True, sync_dist=True)
+            self.log("median_sdr", metric_median_sdr * float(dist.get_world_size()), on_epoch = True, prog_bar=True, sync_dist=True)
+            self.print("Median SDR:", metric_median_sdr,"| Mean SDR:", metric_mean_sdr)
+            dist.barrier()
         
     def test_step(self, batch, batch_idx):
         return self.validation_step(batch, batch_idx)

@@ -184,7 +184,8 @@ for dataset in config.local_config:
             # delete repeat
             if "legato" in dataset and dataset["legato"] == True:
                 midi.instruments[0].notes = delete_repeat(midi.instruments[0], phrase_range)
-            midi.instruments[0].notes += word_notes
+            if "word_control" in dataset:
+                midi.instruments[0].notes += word_notes
             midi_queue.append(midi)
         if len(midi_queue) == len(track_name):
             midi_count += 1

@@ -193,7 +193,7 @@ class MCS_SpecUNet(pl.LightningModule):
     at_model (module): the sound event detection system
     dataset (module): the dataset variable to control the randomness in each epoch (not affect in evaluation mode) 
     '''
-    def __init__(self, channels, config, dataset):
+    def __init__(self, channels, config, dataset, wav_output = False):
         super().__init__()
 
         # hyper parameters
@@ -207,6 +207,7 @@ class MCS_SpecUNet(pl.LightningModule):
         self.check_flag = False
         self.config = config
         self.dataset = dataset
+        self.wav_output = wav_output
 
         self.loss_func = get_loss_func(self.config.loss_type)
 
@@ -395,8 +396,8 @@ class MCS_SpecUNet(pl.LightningModule):
 
         split_mixtures = np.array(np.split(whole_mixture, audio_len // sample_len))
         split_sources = np.array(np.split(whole_source, audio_len // sample_len))
-
         sdr = []
+        whole_pred = []
         # batch feed
         batch_size = self.config.batch_size // torch.cuda.device_count()
         for i in range(0, len(split_mixtures), batch_size):
@@ -412,7 +413,15 @@ class MCS_SpecUNet(pl.LightningModule):
                     class_ids = np.array([1] * len(sources)),
                     mix_type = "mixture"
                 )
+                if self.wav_output:
+                    preds = preds.view(-1).data.cpu().numpy().tolist()
+                    whole_pred += preds
                 sdr += temp_sdr
+        if self.wav_output:
+            test_output_path = os.path.join(self.config.workspace, self.config.test_output)
+            audio_name = batch["audio_name"][0]
+            filename = os.path.join(test_output_path, self.config.dataset_name + "_" + audio_name + "_" + self.config.sep_track + ".wav")
+            sf.write(filename, whole_pred, self.config.sample_rate)
         return {"sdr": sdr}
 
     def validation_epoch_end(self, validation_step_outputs):

@@ -3,7 +3,6 @@
 
 import os
 
-from py import process
 # this is to avoid the sdr calculation from occupying all cpus
 os.environ["OMP_NUM_THREADS"] = "4"
 os.environ["OPENBLAS_NUM_THREADS"] = "4" 
@@ -26,7 +25,7 @@ import model_config as config
 from utils import collect_fn, dump_config, create_folder, load_audio
 from data_generator import AudioTrackDataset
 from model.specunet import MCS_SpecUNet
-from model.convtasnet_copy import MCS_ConvTasNet
+from model.convtasnet import MCS_ConvTasNet
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -124,109 +123,63 @@ def process_audio(process_main_track = False):
 
 # test the separation model, mainly in musdb
 def test():
-    exit()
     # set exp settings
-    device_name = "cuda" if torch.cuda.is_available() else "cpu"
-    device = torch.device("cuda")
-    assert config.test_key is not None, "there should be a separate key"
-    create_folder(config.wave_output_path)
-    # use musdb as testset
-    test_data = np.load(config.testset_path, allow_pickle = True)
-    print(len(test_data))
-    mus_tracks = []
-    # in musdb, all fs is the same (44100)
-    # load the dataset
-    for track in test_data:
-        temp = []
-        mixture = track["mixture"]
-        temp.append(mixture)
-        for dickey in config.test_key:
-            source = track[dickey]
-            temp.append(source)
-        temp = np.array(temp)
-        print(temp.shape)
-        mus_tracks.append(temp)
-    print(len(mus_tracks))
-    dataset = MusdbDataset(tracks = mus_tracks)
-    loader = DataLoader(
-        dataset = dataset,
-        num_workers = 1,
-        batch_size = 1,
-        shuffle = False
-    )
-    assert config.resume_checkpoint is not None, "there should be a saved model when inferring"
+    # device_name = "cuda" if torch.cuda.is_available() else "cpu"
+    # device = torch.device("cuda")
+
+    device_num = torch.cuda.device_count()
+    print("each batch size:", config.batch_size // device_num)
+
     
-    sed_model = HTSAT_Swin_Transformer(
-        spec_size=htsat_config.htsat_spec_size,
-        patch_size=htsat_config.htsat_patch_size,
-        in_chans=1,
-        num_classes=htsat_config.classes_num,
-        window_size=htsat_config.htsat_window_size,
-        config = htsat_config,
-        depths = htsat_config.htsat_depth,
-        embed_dim = htsat_config.htsat_dim,
-        patch_stride=htsat_config.htsat_stride,
-        num_heads=htsat_config.htsat_num_head
+    idxs = np.load(os.path.join(config.dataset_path, config.split_file), allow_pickle = True)
+    idxs = idxs.item()
+    train_idxs = idxs["train"]
+    # validate_idxs = idxs["train"][:30]
+    validate_idxs = idxs["validate"]
+    test_idxs = idxs["test"]
+
+    exp_dir = os.path.join(config.workspace, "results", config.exp_name)
+    checkpoint_dir = os.path.join(config.workspace, "results", config.exp_name, "checkpoint")
+
+    test_output_path = os.path.join(config.workspace, config.test_output)
+    create_folder(test_output_path)
+    # load data
+    # import dataset LGSPDataset (latent general source separation) and sampler
+    eval_dataset = AudioTrackDataset(
+        idxs=validate_idxs,
+        config=config,
+        factor=1,
+        eval_mode=True
     )
-    at_model = SEDWrapper(
-        sed_model = sed_model, 
-        config = htsat_config,
-        dataset = None
-    )
-    ckpt = torch.load(htsat_config.resume_checkpoint, map_location="cpu")
-    at_model.load_state_dict(ckpt["state_dict"])
+
+    audioset_data = data_prep(train_dataset=eval_dataset,eval_dataset=eval_dataset,device_num=device_num, config=config)
+   
     trainer = pl.Trainer(
-        gpus = 1
+        deterministic=True,
+        default_root_dir = checkpoint_dir,
+        gpus = device_num,
+        # val_check_interval = 1,
+        check_val_every_n_epoch = 1,
+        max_epochs = config.max_epoch,
+        auto_lr_find = True,
+        sync_batchnorm = True,
+        accelerator = "ddp" if device_num > 1 else None,
+        resume_from_checkpoint = None, #config.resume_checkpoint,
+        replace_sampler_ddp = False,
+        gradient_clip_val=5.0,
+        num_sanity_val_steps = 0
     )
-    avg_at = None
-    # obtain the query of four stems from the training set
-    if config.infer_type == "mean":
-        avg_data = np.load(config.testavg_path, allow_pickle = True)[:90]
-        print(len(avg_data))
-        avgmus_tracks = []
-        # in musdb, all fs is the same (44100)
-        # load the dataset
-        for track in avg_data:
-            temp = []
-            mixture = track["mixture"]
-            temp.append(mixture)
-            for dickey in config.test_key:
-                source = track[dickey]
-                temp.append(source)
-            temp = np.array(temp)
-            print(temp.shape)
-            avgmus_tracks.append(temp)
-        print(len(avgmus_tracks))
-        avg_dataset = MusdbDataset(tracks = avgmus_tracks)
-        avg_loader = DataLoader(
-            dataset = avg_dataset,
-            num_workers = 1,
-            batch_size = 1,
-            shuffle = False
-        )
-        at_wrapper = AutoTaggingWarpper(
-            at_model = at_model,
-            config = config,
-            target_keys = config.test_key
-        )
-        trainer.test(at_wrapper, test_dataloaders = avg_loader)
-        avg_at = at_wrapper.avg_at
-    
-    model = ZeroShotASP(
-        channels = 1, config = config, 
-        at_model = at_model, 
-        dataset = dataset
+    model_type = eval(config.model_type)
+    model = model_type(
+        channels=1,
+        config=config,
+        dataset=eval_dataset,
+        wav_output = True
     )
-    ckpt = torch.load(config.resume_checkpoint, map_location="cpu")
-    model.load_state_dict(ckpt["state_dict"], strict= False)
-    exp_model = SeparatorModel(
-        model = model,
-        config = config,
-        target_keys = config.test_key,
-        avg_at = avg_at,
-        using_wiener = config.using_wiener
-    )
-    trainer.test(exp_model, test_dataloaders = loader)
+    if config.resume_checkpoint is not None:
+        ckpt = torch.load(config.resume_checkpoint, map_location="cpu")
+        model.load_state_dict(ckpt["state_dict"])
+    trainer.test(model, datamodule = audioset_data)
 
 def train():
     # set exp settings
@@ -240,8 +193,8 @@ def train():
     idxs = np.load(os.path.join(config.dataset_path, config.split_file), allow_pickle = True)
     idxs = idxs.item()
     train_idxs = idxs["train"]
-    validate_idxs = idxs["train"][:30]
-    # validate_idxs = idxs["validate"]
+    # validate_idxs = idxs["train"][:30]
+    validate_idxs = idxs["validate"]
     test_idxs = idxs["test"]
 
     # set exp folder

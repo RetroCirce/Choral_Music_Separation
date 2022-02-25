@@ -455,7 +455,7 @@ class MCS_ConvTasNet(pl.LightningModule):
 
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer=optimizer, mode="max",
-            factor=0.5, patience=2,verbose=True
+            factor=0.65, patience=3,verbose=True
         )
         cop_dict = {
             "optimizer": optimizer,

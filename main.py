@@ -3,7 +3,6 @@
 
 import os
 
-from py import process
 # this is to avoid the sdr calculation from occupying all cpus
 os.environ["OMP_NUM_THREADS"] = "4"
 os.environ["OPENBLAS_NUM_THREADS"] = "4" 

@@ -62,6 +62,8 @@ def add_legato(instrument, phrase_range, legato_factor = 0.2):
                     continue
                 if abs(notes[i].pitch - notes[i+1].pitch) < 5:
                     notes[i].end += (legato_factor * phrase_indent)
+                else:
+                    notes[i].end = notes[i+1].start - 0.01
             else:
                 pass
                 # if pr[1] + 1 != len(notes):

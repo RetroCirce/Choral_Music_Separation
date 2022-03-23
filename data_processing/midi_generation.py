@@ -152,7 +152,7 @@ for dataset in config.local_config:
     # ignore the piano track
     if "piano" in dataset["name"]:
         continue
-    folder_name = os.path.join(config.dataset_path, dataset["name"])
+    folder_name = os.path.join(config.dataset_path, config.type_path, dataset["name"])
     utils.create_folder(folder_name)
     midi_count = 0
     octave_bias = None

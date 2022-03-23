@@ -8,6 +8,7 @@ cc_volume = 7
 
 # data config
 dataset_path = "D:/Research/audio source separation/Music Voice Source Separation/bach_chorale/" # must be absolute
+type_path = "standard"
 # "D:/Research/audio source separation/Music Voice Source Separation/bach_daw_demo/midi"
 global_config = {
     "general_name_length": 11, # chorale_xxx

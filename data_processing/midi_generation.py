@@ -2,6 +2,7 @@ import sys
 import os
 
 from pyparsing import nums
+
 sys.path.append('..')
 import numpy as np
 import config
@@ -10,6 +11,7 @@ from tqdm import tqdm
 import math
 import random
 import utils
+import copy
 
 
 def octave_shift(instrument, octave_bias):
@@ -142,6 +144,27 @@ def delete_repeat(instrument, phrase_range):
             new_notes.append(notes[i])          
     return new_notes
 
+def get_tonality_list(max_notes, min_notes, track_name, threshold, note_range):
+    tonality_list = []
+    possible_list = [0] + list(range(1, threshold + 1)) + list(range(-threshold, 0))
+    for k in possible_list:
+        is_add = True
+        for i in range(len(track_name)):
+            tn = track_name[i]
+            if note_range[i][0] <= max_notes[tn] + k <= note_range[i][1] and note_range[i][0] <= min_notes[tn] + k <= note_range[i][1]:
+                is_add = True
+            else:
+                is_add = False
+                break
+        if is_add:
+            tonality_list.append(k)
+    return tonality_list
+
+def shift_tonality(notes, k):
+    for i in range(len(notes)):
+        notes[i].pitch += k
+    return notes
+
 
 dataset_path = os.path.join(config.dataset_path, "original")
 track_name = config.global_config["track_name"]
@@ -162,37 +185,53 @@ for dataset in config.local_config:
     if "note_range" in dataset:
         note_range = dataset["note_range"]
     for midi_file in tqdm(midi_files):
-        midi_queue = []
+        meta_midis = {}
+        max_notes = {}
+        min_notes = {}
+        # whole track control
         for i in range(len(track_name)):
-            midi = pyd.PrettyMIDI(os.path.join(dataset_path, midi_file + "_" + track_name[i] + ".mid"))
-            # octave shift
+            meta_midis[track_name[i]] = pyd.PrettyMIDI(os.path.join(dataset_path, midi_file + "_" + track_name[i] + ".mid"))
             if octave_bias is not None:
                 if octave_bias[i] != 0:
-                    midi.instruments[0].notes = octave_shift(midi.instruments[0], octave_bias[i])
+                    meta_midis[track_name[i]].instruments[0].notes = octave_shift(meta_midis[track_name[i]].instruments[0], octave_bias[i])
             # maxmin threshold
             if note_range is not None:
-                midi.instruments[0].notes = maxmin_threshold(midi.instruments[0], note_range[i])
-            # split phrase
-            _, phrase_range = split_phrases((midi.instruments[0]))
-            # add legato
-            if "legato" in dataset and dataset["legato"] == True:
-                midi.instruments[0].notes = add_legato(midi.instruments[0], phrase_range)
-            # dynamic velocity
-            if "dynamic_vel" in dataset:
-                midi.instruments[0].control_changes = add_dynamic_volume(midi.instruments[0], dataset["dynamic_vel"], phrase_range)
-            # word control
-            if "word_control" in dataset:
-                word_notes = add_word_control(midi.instruments[0],phrase_range,dataset["word_control"][i])
-            # delete repeat
-            if "legato" in dataset and dataset["legato"] == True:
-                midi.instruments[0].notes = delete_repeat(midi.instruments[0], phrase_range)
-            if "word_control" in dataset:
-                midi.instruments[0].notes += word_notes
-            midi_queue.append(midi)
-        if len(midi_queue) == len(track_name):
-            midi_count += 1
+                meta_midis[track_name[i]].instruments[0].notes = maxmin_threshold(meta_midis[track_name[i]].instruments[0], note_range[i])
+                max_notes[track_name[i]] = max([d.pitch for d in meta_midis[track_name[i]].instruments[0].notes])
+                min_notes[track_name[i]] = min([d.pitch for d in meta_midis[track_name[i]].instruments[0].notes])
+        
+        # tonality check 
+        if "shift_tonality" in dataset:
+            tonality_list = get_tonality_list(max_notes, min_notes, track_name, dataset["shift_tonality"], note_range)
+        else:
+            tonality_list = [0]
+        for jj, k in enumerate(tonality_list):
+            midi_queue = []
             for i in range(len(track_name)):
-                midi_queue[i].write(os.path.join(folder_name, midi_file + "_" + track_name[i] + ".mid"))
+                midi = copy.deepcopy(meta_midis[track_name[i]])
+                # shift tonality
+                midi.instruments[0].notes = shift_tonality(midi.instruments[0].notes, k)
+                # split phrase
+                _, phrase_range = split_phrases((midi.instruments[0]))
+                # add legato
+                if "legato" in dataset and dataset["legato"] == True:
+                    midi.instruments[0].notes = add_legato(midi.instruments[0], phrase_range)
+                # dynamic velocity
+                if "dynamic_vel" in dataset:
+                    midi.instruments[0].control_changes = add_dynamic_volume(midi.instruments[0], dataset["dynamic_vel"], phrase_range)
+                # word control
+                if "word_control" in dataset:
+                    word_notes = add_word_control(midi.instruments[0],phrase_range,dataset["word_control"][i])
+                # delete repeat
+                if "legato" in dataset and dataset["legato"] == True:
+                    midi.instruments[0].notes = delete_repeat(midi.instruments[0], phrase_range)
+                if "word_control" in dataset:
+                    midi.instruments[0].notes += word_notes
+                midi_queue.append(midi)
+            if len(midi_queue) == len(track_name):
+                midi_count += 1
+                for i in range(len(track_name)):
+                    midi_queue[i].write(os.path.join(folder_name, midi_file + "_" + track_name[i] + "_" + str(jj) + ".mid"))
     print("%d files in total, sucessfully processed %d file" %(len(midi_files), midi_count))
 
 

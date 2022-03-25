@@ -19,21 +19,21 @@ def create_folder(folder_name):
 		os.mkdir(folder_name)
 
 
-def render_project(midi_file, output_path, output_name, override = True):
+def render_project(midi_file, tonality_index, output_path, output_name, override = True):
     output_file = os.path.join(output_path, output_name)
     track_name = config.global_config["track_name"]
-    if os.path.exists(output_file + ".wav"):
+    if os.path.exists(output_file + "_" + str(tonality_index) + ".wav"):
         if override:
-            os.remove(output_file + ".wav")
+            os.remove(output_file + "_" + str(tonality_index) + ".wav")
         else:
-            RPR_ShowConsoleMsg("The file ", output_name + ".wav"," already exist but the override option is False")
+            RPR_ShowConsoleMsg("The file ", output_file + "_" + str(tonality_index) + ".wav"," already exist but the override option is False")
             return
     for t in track_name:
-        if os.path.exists(output_file + "_" + t + ".wav"):
+        if os.path.exists(output_file + "_" + t + "_" + str(tonality_index) + ".wav"):
             if override:
-                os.remove(output_file + "_" + t + ".wav")
+                os.remove(output_file + "_" + t + "_" + str(tonality_index) + ".wav")
             else:
-                RPR_ShowConsoleMsg("The file ", output_name + "_" + t + ".wav"," already exist but the override option is False")
+                RPR_ShowConsoleMsg("The file ", output_file + "_" + t + "_" + str(tonality_index) + ".wav"," already exist but the override option is False")
                 return
     # erase previous midi tracks
     num_item = RPR_CountMediaItems(0)
@@ -43,16 +43,16 @@ def render_project(midi_file, output_path, output_name, override = True):
         k = RPR_DeleteTrackMediaItem(track, mi)
     # insert new tracks
     for i in range(len(track_name)):
-        file = midi_file + "_" +  track_name[i] + ".mid"
+        file = midi_file + "_" +  track_name[i] + "_" + str(tonality_index) + ".mid"
         track = RPR_GetTrack(0, i + 1)
         RPR_SetOnlyTrackSelected(track)
         RPR_SetEditCurPos(0, True, False)
         RPR_InsertMedia(file, 0)
     for i in range(len(track_name)):
-        solo_name = output_name + "_" + track_name[i] + ".wav"
+        solo_name = output_name + "_" + track_name[i] + "_" + str(tonality_index) + ".wav"
         render_action(output_path, solo_name, i)
     # render different tracks
-    render_action(output_path, output_name, -1)
+    render_action(output_path, output_name + "_" + str(tonality_index) + ".wav", -1)
 
 render_path = config.render_path
 
@@ -68,5 +68,12 @@ midi_files = list(set(d[:config.global_config["general_name_length"]] for d in o
 midi_files.sort()
 
 for midi_file in midi_files:
-    render_project(os.path.join(dataset_path, midi_file), render_path, midi_file)
+    for i in range(0, 12):
+        path_tidx = os.path.join(dataset_path, midi_file + "_alto_" + str(i) + ".mid")
+        if os.path.exists(path_tidx):
+            render_project(os.path.join(dataset_path, midi_file), i, render_path, midi_file)
+        else:
+            break
+
+    
 

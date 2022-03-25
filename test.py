@@ -1,7 +1,22 @@
 import os
 import config
 from reaper_python import *
-from utils import render_action, create_folder
+
+
+def render_action(dir = "", file = "test.wav", track = -1):
+	RPR_GetSetProjectInfo_String(0, "RENDER_FILE", dir, True)
+	RPR_GetSetProjectInfo_String(0, "RENDER_PATTERN", file , True)
+	RPR_Main_OnCommand(40340, 0)
+	if track != -1:
+		command = 40940 + track
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+	RPR_Main_OnCommand(42230, 0)
+
+
+def create_folder(folder_name):
+	if not os.path.exists(folder_name):
+		os.mkdir(folder_name)
 
 
 def render_project(midi_file, output_path, output_name, override = True):
@@ -44,8 +59,8 @@ render_path = config.render_path
 
 project_name = RPR_GetSetProjectInfo_String(0, "PROJECT_NAME", "", False)[3]
 project_name = project_name[:-4]
-dataset_path = os.path.join(config.dataset_path, project_name)
-render_path = os.path.join(config.render_path, project_name)
+dataset_path = os.path.join(config.dataset_path, config.type_path, project_name)
+render_path = os.path.join(config.render_path, config.type_path, project_name)
 
 create_folder(render_path)
 

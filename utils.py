@@ -8,10 +8,7 @@ import torch
 import museval
 
 from datetime import datetime
-from venv import create
 from reaper_python import *
-
-
 
 
 def render_action(dir = "", file = "test.wav", track = -1):

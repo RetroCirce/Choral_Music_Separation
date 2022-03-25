@@ -1,6 +1,7 @@
 # Ke Chen
 # The Main Script
 
+from errno import EALREADY
 import os
 
 # this is to avoid the sdr calculation from occupying all cpus
@@ -23,9 +24,10 @@ from torch.utils.data.distributed import DistributedSampler
 import model_config as config
 
 from utils import collect_fn, dump_config, create_folder, load_audio
-from data_generator import AudioTrackDataset
+from data_generator import AudioTrackDataset, Cantoria_Dataset, DCS_Dataset, ChoraleSingingDataset
 from model.specunet import MCS_SpecUNet
 from model.convtasnet import MCS_ConvTasNet
+from model.byteresunet import MCS_DPIResUNet
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -98,28 +100,40 @@ def weight_average():
         wa_ckpt["state_dict"][key] = model_ckpt_key
     torch.save(wa_ckpt, config.wa_model_path)
 
-def process_audio(process_main_track = False):
-    dataset_path = os.path.join(config.dataset_path, config.dataset_name)
-    idxs = np.load(os.path.join(config.dataset_path, config.split_file), allow_pickle = True)
-    idxs = idxs.item()
-    count = [0,0,0]
-
-    create_folder(os.path.join(dataset_path, "h5_file"))
-    for i, key in enumerate(["train","validate","test"]):
-        for file_idx in tqdm(idxs[key]):
-            if process_main_track:
-                wav_file = os.path.join(dataset_path, "chorale_" + file_idx + ".wav")
-                h5_file = os.path.join(dataset_path, "h5_file", "chorale_" + file_idx + ".h5")
-            else:
-                wav_file = os.path.join(dataset_path, "chorale_" + file_idx + "_" + config.sep_track + ".wav")
-                h5_file = os.path.join(dataset_path, "h5_file", "chorale_" + file_idx + "_" + config.sep_track + ".h5")
-            if os.path.exists(wav_file):
+def process_audio(process_main_track = False, direct_process = True):
+    if direct_process:
+        dataset_path = os.path.join(config.dataset_path, config.dataset_name)
+        create_folder(os.path.join(dataset_path, "h5_file"))
+        for filename in tqdm(os.listdir(dataset_path)):
+            if filename.endswith(".wav"):
+                wav_file = os.path.join(dataset_path, filename)
+                h5_file = os.path.join(dataset_path, "h5_file", filename[:-4] + ".h5")
                 track = load_audio(wav_file = wav_file, target_sr = config.sample_rate)
-                count[i] += 1
                 with h5py.File(h5_file, "w") as hw:
-                    hw.create_dataset("audio_name", data = file_idx, dtype="S20")
+                    hw.create_dataset("audio_name", data = filename[:-4], dtype="S20")
                     hw.create_dataset("waveform", data = track)
-    print("train | validate | test:", count)
+    else:
+        dataset_path = os.path.join(config.dataset_path, config.dataset_name)
+        idxs = np.load(os.path.join(config.dataset_path, config.split_file), allow_pickle = True)
+        idxs = idxs.item()
+        count = [0,0,0]
+
+        create_folder(os.path.join(dataset_path, "h5_file"))
+        for i, key in enumerate(["train","validate","test"]):
+            for file_idx in tqdm(idxs[key]):
+                if process_main_track:
+                    wav_file = os.path.join(dataset_path, "chorale_" + file_idx + ".wav")
+                    h5_file = os.path.join(dataset_path, "h5_file", "chorale_" + file_idx + ".h5")
+                else:
+                    wav_file = os.path.join(dataset_path, "chorale_" + file_idx + "_" + config.sep_track + ".wav")
+                    h5_file = os.path.join(dataset_path, "h5_file", "chorale_" + file_idx + "_" + config.sep_track + ".h5")
+                if os.path.exists(wav_file):
+                    track = load_audio(wav_file = wav_file, target_sr = config.sample_rate)
+                    count[i] += 1
+                    with h5py.File(h5_file, "w") as hw:
+                        hw.create_dataset("audio_name", data = file_idx, dtype="S20")
+                        hw.create_dataset("waveform", data = track)
+        print("train | validate | test:", count)
 
 # test the separation model, mainly in musdb
 def test():
@@ -138,19 +152,41 @@ def test():
     validate_idxs = idxs["validate"]
     test_idxs = idxs["test"]
 
-    exp_dir = os.path.join(config.workspace, "results", config.exp_name)
-    checkpoint_dir = os.path.join(config.workspace, "results", config.exp_name, "checkpoint")
+    exp_dir = os.path.join(config.checkpointspace, "results", config.exp_name)
+    checkpoint_dir = os.path.join(config.checkpointspace, "results", config.exp_name, "checkpoint")
 
-    test_output_path = os.path.join(config.workspace, config.test_output)
+    test_output_path = os.path.join(config.checkpointspace, config.test_output)
     create_folder(test_output_path)
     # load data
     # import dataset LGSPDataset (latent general source separation) and sampler
-    eval_dataset = AudioTrackDataset(
-        idxs=validate_idxs,
-        config=config,
-        factor=1,
-        eval_mode=True
-    )
+    if config.dataset_name == "CantoriaDatase":
+        eval_dataset = Cantoria_Dataset(
+            dataset_name="CantoriaDatase",
+            config=config,
+            factor=1,
+            eval_mode=True
+        )
+    elif config.dataset_name == "dcs":
+        eval_dataset = DCS_Dataset(
+            dataset_name="dcs",
+            config=config,
+            factor=1,
+            eval_mode=True
+        )
+    elif config.dataset_name == "ChoraleSingingDataset":
+        eval_dataset = ChoraleSingingDataset(
+            dataset_name="ChoraleSingingDataset",
+            config=config,
+            factor=1,
+            eval_mode=True
+        )
+    else:
+        eval_dataset = AudioTrackDataset(
+            idxs=validate_idxs,
+            config=config,
+            factor=1,
+            eval_mode=True
+        )
 
     audioset_data = data_prep(train_dataset=eval_dataset,eval_dataset=eval_dataset,device_num=device_num, config=config)
    
@@ -198,29 +234,43 @@ def train():
     test_idxs = idxs["test"]
 
     # set exp folder
-    exp_dir = os.path.join(config.workspace, "results", config.exp_name)
-    checkpoint_dir = os.path.join(config.workspace, "results", config.exp_name, "checkpoint")
+    exp_dir = os.path.join(config.checkpointspace, "results", config.exp_name)
+    checkpoint_dir = os.path.join(config.checkpointspace, "results", config.exp_name, "checkpoint")
     
     if not config.debug:
-        create_folder(os.path.join(config.workspace, "results"))
+        create_folder(os.path.join(config.checkpointspace, "results"))
         create_folder(exp_dir)
         create_folder(checkpoint_dir)
         dump_config(config, os.path.join(exp_dir, config.exp_name), False)
         
     # load data
     # import dataset LGSPDataset (latent general source separation) and sampler
-    dataset = AudioTrackDataset(
-        idxs=train_idxs,
-        config=config,
-        factor=20,
-        eval_mode=False
-    )
-    eval_dataset = AudioTrackDataset(
-        idxs=validate_idxs,
-        config=config,
-        factor=1,
-        eval_mode=True
-    )
+    if config.dataset_name == "CantoriaDatase":
+        dataset = Cantoria_Dataset(
+            dataset_name="CantoriaDatase",
+            config=config,
+            factor=100,
+            eval_mode=False
+        )
+        eval_dataset = Cantoria_Dataset(
+            dataset_name="CantoriaDatase",
+            config=config,
+            factor=1,
+            eval_mode=True
+        )
+    else:
+        dataset = AudioTrackDataset(
+            idxs=train_idxs,
+            config=config,
+            factor=20,
+            eval_mode=False
+        )
+        eval_dataset = AudioTrackDataset(
+            idxs=validate_idxs,
+            config=config,
+            factor=1,
+            eval_mode=True
+        )
 
     audioset_data = data_prep(train_dataset=dataset,eval_dataset=eval_dataset,device_num=device_num, config=config)
     checkpoint_callback = ModelCheckpoint(

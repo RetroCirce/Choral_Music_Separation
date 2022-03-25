@@ -136,7 +136,7 @@ class ConvBlock(nn.Module):
 class EncoderBlock(nn.Module):
     def __init__(self, in_channels, out_channels, downsample, activation, momentum, classes_num = 527):
         super(EncoderBlock, self).__init__()
-        size = 3
+        size = 3 # Changeh here
 
         self.conv_block = ConvBlock(in_channels, out_channels, size, activation, momentum, classes_num)
         self.downsample = downsample
@@ -150,12 +150,13 @@ class EncoderBlock(nn.Module):
 class DecoderBlock(nn.Module):
     def __init__(self, in_channels, out_channels, stride, activation, momentum, classes_num = 527):
         super(DecoderBlock, self).__init__()
-        size = 3
+        size = 3 # Change here
         self.activation = activation
 
         self.conv1 = torch.nn.ConvTranspose2d(in_channels=in_channels, 
             out_channels=out_channels, kernel_size=(size, size), stride=stride, 
             padding=(0, 0), output_padding=(0, 0), bias=False, dilation=(1, 1))
+        # Change padding here
 
         self.bn1 = nn.BatchNorm2d(out_channels, momentum=momentum)
         self.conv_block2 = ConvBlock(out_channels * 2, out_channels, size, activation, momentum, classes_num)
@@ -359,13 +360,6 @@ class MCS_SpecUNet(pl.LightningModule):
         output_dict = {"wav": wav_out, "sp": sp_out}
         return output_dict
 
-    def combine_batch(self, x, y):
-        xy = []
-        assert len(x) == len(y), "two combined batches should be in the same length"
-        for i in range(len(x)):
-            xy += [x[i], y[i]]
-        return np.array(xy)
-    
     def training_step(self, batch, batch_idx):
         self.train()
         self.device_type = next(self.parameters()).device
@@ -433,6 +427,8 @@ class MCS_SpecUNet(pl.LightningModule):
             median_sdr.append(np.median([dd[0][0] for dd in d["sdr"]]))
         mean_sdr = np.array(mean_sdr)
         median_sdr = np.array(median_sdr)
+        print("Each Mean SDR:", mean_sdr)
+        print("Each Median SDR:", median_sdr)
         # ddp 
         if torch.cuda.device_count() == 1:
             self.print("--------Single GPU----------")
@@ -475,18 +471,36 @@ class MCS_SpecUNet(pl.LightningModule):
             self.parameters(), lr = self.config.learning_rate, 
             betas = (0.9, 0.999), eps = 1e-08, weight_decay = 0., amsgrad = True
         )
-        def lr_foo(epoch):       
-            if epoch < 3:
-                # warm up lr
-                lr_scale = 1
-            else:
-                lr_scale = 0.5 ** (bisect.bisect_left(self.config.lr_scheduler_epoch, epoch))
 
-            return lr_scale
-        scheduler = optim.lr_scheduler.LambdaLR(
-            optimizer,
-            lr_lambda=lr_foo
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer=optimizer, mode="max",
+            factor=0.65, patience=3,verbose=True
         )
+        cop_dict = {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "monitor": "mean_sdr"
+            }
+        } 
 
-        return [optimizer], [scheduler]
+        return cop_dict
+        # optimizer = optim.Adam(
+        #     self.parameters(), lr = self.config.learning_rate, 
+        #     betas = (0.9, 0.999), eps = 1e-08, weight_decay = 0., amsgrad = True
+        # )
+        # def lr_foo(epoch):       
+        #     if epoch < 3:
+        #         # warm up lr
+        #         lr_scale = 1
+        #     else:
+        #         lr_scale = 0.5 ** (bisect.bisect_left(self.config.lr_scheduler_epoch, epoch))
+
+        #     return lr_scale
+        # scheduler = optim.lr_scheduler.LambdaLR(
+        #     optimizer,
+        #     lr_lambda=lr_foo
+        # )
+
+        # return [optimizer], [scheduler]
 

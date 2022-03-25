@@ -100,7 +100,7 @@ def weight_average():
         wa_ckpt["state_dict"][key] = model_ckpt_key
     torch.save(wa_ckpt, config.wa_model_path)
 
-def process_audio(process_main_track = False, direct_process = True):
+def process_audio(process_main_track = False, direct_process = False):
     if direct_process:
         dataset_path = os.path.join(config.dataset_path, config.dataset_name)
         create_folder(os.path.join(dataset_path, "h5_file"))

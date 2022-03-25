@@ -2,19 +2,21 @@
 # Ke Chen
 # 2022.02.05
 
-exp_name = "ctd_bass_specunet_nopretrain" # tasnet specunet
+exp_name = "vocal_dominus_tenor_specunet" # tasnet specunet
 workspace = "/home/kechen/Research/KE_MCS/"
 checkpointspace = "/projects/kechen/research/MCS/"
 test_output = "wav_output"
 
 
 dataset_path = "data/"
-dataset_name = "CantoriaDatase" # CantoriaDatase
+dataset_name = "vocal_dominus" # CantoriaDatase
 split_file = "idx_string_ni.npy"
-sep_track = "bass"
+sep_track = "tenor"
 model_type = "MCS_SpecUNet" # "MCS_ConvTasNet" # "MCS_SpecUNet" # "MCS_DPIResUNet"
 
-resume_checkpoint = None # "/projects/kechen/research/MCS/results/vocal_vor_bass_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=15-mean_sdr=9.635-median_sdr=9.538.ckpt" 
+resume_checkpoint = None 
+#"/projects/kechen/research/MCS/results/ctd_tenor_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=33-mean_sdr=-0.976-median_sdr=1.535.ckpt"
+# "/projects/kechen/research/MCS/results/vocal_vor_alto_specunet/checkpoint/lightning_logs/version_4/checkpoints/l-epoch=46-mean_sdr=10.497-median_sdr=10.190.ckpt"
 # "/projects/kechen/research/MCS/results/vocal_vor_sop_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=17-mean_sdr=10.559-median_sdr=10.449.ckpt"
 # "/projects/kechen/research/MCS/results/piano_noire_sop_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=90-mean_sdr=9.283-median_sdr=9.732.ckpt"
 
@@ -40,7 +42,7 @@ loss_type = "mae"   # "si_snr" # "mae"
 debug = False
 
 batch_size = 8
-learning_rate = 1e-4 # 1e-3 1e-4
+learning_rate = 5e-4 # 1e-3 1e-4
 max_epoch = 100
 num_workers = 3
 lr_scheduler_epoch = [20, 40, 60]

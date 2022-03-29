@@ -3,12 +3,66 @@ import config
 from reaper_python import *
 
 
-def render_action(dir = "", file = "test.wav", track = -1):
+def render_action(dir = "", file = "test.wav", track = "mix"):
 	RPR_GetSetProjectInfo_String(0, "RENDER_FILE", dir, True)
 	RPR_GetSetProjectInfo_String(0, "RENDER_PATTERN", file , True)
 	RPR_Main_OnCommand(40340, 0)
-	if track != -1:
-		command = 40940 + track
+	if track == "tenor":
+		command = 40940
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+	elif track == "bass":
+		command = 40941
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+	elif track == "soprano":
+		command = 40942
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+	elif track == "alto":
+		command = 40943
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+	elif track == "girl":
+		command = 40942
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+		command = 40943
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+	elif track == "boya":
+		command = 40940
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+		command = 40941
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+	elif track == "hidis":
+		command = 40941
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+		command = 40942
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+	elif track == "lowdis":
+		command = 40940
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+		command = 40943
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+	elif track == "diff":
+		command = 40940
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+		command = 40942
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+	elif track == "zick":
+		command = 40941
+		RPR_Main_OnCommand(command, 0)
+		RPR_Main_OnCommand(40728, 0)
+		command = 40943
 		RPR_Main_OnCommand(command, 0)
 		RPR_Main_OnCommand(40728, 0)
 	RPR_Main_OnCommand(42230, 0)
@@ -22,13 +76,8 @@ def create_folder(folder_name):
 def render_project(midi_file, tonality_index, output_path, output_name, override = True):
     output_file = os.path.join(output_path, output_name)
     track_name = config.global_config["track_name"]
-    if os.path.exists(output_file + "_" + str(tonality_index) + ".wav"):
-        if override:
-            os.remove(output_file + "_" + str(tonality_index) + ".wav")
-        else:
-            RPR_ShowConsoleMsg("The file ", output_file + "_" + str(tonality_index) + ".wav"," already exist but the override option is False")
-            return
-    for t in track_name:
+    render_name = config.global_config["render_name"]
+    for t in render_name:
         if os.path.exists(output_file + "_" + t + "_" + str(tonality_index) + ".wav"):
             if override:
                 os.remove(output_file + "_" + t + "_" + str(tonality_index) + ".wav")
@@ -48,11 +97,11 @@ def render_project(midi_file, tonality_index, output_path, output_name, override
         RPR_SetOnlyTrackSelected(track)
         RPR_SetEditCurPos(0, True, False)
         RPR_InsertMedia(file, 0)
-    for i in range(len(track_name)):
-        solo_name = output_name + "_" + track_name[i] + "_" + str(tonality_index) + ".wav"
-        render_action(output_path, solo_name, i)
+    for i in range(len(render_name)):
+        solo_name = output_name + "_" + render_name[i] + "_" + str(tonality_index) + ".wav"
+        render_action(output_path, solo_name, render_name[i])
     # render different tracks
-    render_action(output_path, output_name + "_" + str(tonality_index) + ".wav", -1)
+    # render_action(output_path, output_name + "_" + str(tonality_index) + ".wav", -1)
 
 render_path = config.render_path
 

@@ -8,12 +8,22 @@ cc_volume = 7
 
 # data config
 dataset_path = "D:/Research/audio source separation/Music Voice Source Separation/bach_chorale/" # must be absolute
-type_path = "performance"
+type_path = "standard"
 # "D:/Research/audio source separation/Music Voice Source Separation/bach_daw_demo/midi"
 global_config = {
     "general_name_length": 11, # chorale_xxx
     "dynamic_tempo": False,
     "track_name": ["tenor", "bass", "soprano", "alto"],
+    "render_name": ["tenor", "bass", "soprano", "alto", "mix", "girl", "boya", "hidis", "lowdis", "diff", "zick"],
+    # mix = s + a + t + b
+    # girl = s + a
+    # boya = t + b
+    # hidis = s + b
+    # lowdis = a + t
+    # diff = s + t
+    # zick = a + b
+    # noalto = s + t + b...
+
     "octave_bias": [0,0,0,0],
     "phrase_indent": 60 / 90 * 0.95
 }
@@ -41,18 +51,18 @@ local_config = [
     #     # "dynamic_vel": [60, 110],
     #     # "word_control": [[24,25,26,27,28,29,30],[24,25,26,27,28,29,30],[24,25,26,27,28,29,30],[24,25,26,27,28,29,30]]
     # },
-    # {
-    #     "name": "string_emb", "octave_bias": [1,0,1,0],
-    #     "note_range":[[55,101],[36,82],[55,101],[48,91]]
-    # },
     {
-        "name": "vocal_vor",
-        "note_range": [[47, 73],[33, 62],[59, 86],[52, 79]],
-        "shift_tonality": 3,
-        "dynamic_vel": [80, 125],
-        "legato": True,
-        "word_control": [[1,2],[0,1,2],[0,1],[0,1,2,3]]
+        "name": "string_emb", "octave_bias": [1,0,1,0],
+        "note_range":[[55,101],[36,82],[55,101],[48,91]]
     },
+    # {
+    #     "name": "vocal_vor",
+    #     "note_range": [[47, 73],[33, 62],[59, 86],[52, 79]],
+    #     "shift_tonality": 3,
+    #     "dynamic_vel": [80, 125],
+    #     "legato": True,
+    #     "word_control": [[1,2],[0,1,2],[0,1],[0,1,2,3]]
+    # },
     # {
     #     "name": "vocal_dominus",
     #     "note_range": [[43, 67], [40, 67],[55, 81], [55, 81]],

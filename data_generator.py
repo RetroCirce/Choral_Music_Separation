@@ -1,5 +1,6 @@
 from re import A
 import numpy as np
+from scipy.fftpack import shift
 import torch
 import logging
 import os
@@ -14,6 +15,23 @@ from utils import get_segment_bgn_end_frames
 from datetime import datetime
 
 from torch.utils.data import Dataset, Sampler
+
+def build_mixture(mixture_name):
+    if mixture_name == "" or mixture_name == "mix":
+        return ["tenor","bass","soprano", "alto"]
+    if mixture_name == "girl":
+        return ["soprano", "alto"]
+    if mixture_name == "boya":
+        return ["tenor", "bass"]
+    if mixture_name == "hidis":
+        return ["soprano", "bass"]
+    if mixture_name == "lowdis":
+        return ["tenor", "alto"]
+    if mixture_name == "zick":
+        return ["alto","bass"]
+    if mixture_name == "diff":
+        return ["soprano", "tenor"]
+    return ["tenor","bass","soprano", "alto"]
 
 class ChoraleSingingDataset(Dataset):
     def __init__(self, dataset_name, config, factor = 3, eval_mode = False):
@@ -279,12 +297,24 @@ class AudioTrackDataset(Dataset):
         self.eval_mode = eval_mode
         self.dataset_path = os.path.join(config.dataset_path, config.dataset_name)
         self.idxs = []
+        self.idxs_tonality = {}
         # examing the file
         logging.info("examing the h5 file")
         for file_idx in tqdm(idxs):
-            h5_file_mixture = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + ".h5")
-            if os.path.exists(h5_file_mixture):
-                self.idxs.append(file_idx)
+            if self.config.shift_tonality:
+                h5_file_test = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + "_alto_0.h5")
+            else:
+                h5_file_test = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + "_alto.h5")
+            if os.path.exists(h5_file_test):
+                self.idxs.append(file_idx) 
+                if self.config.shift_tonality:
+                    self.idxs_tonality[file_idx] = [0]
+                    for j in range(1,12):
+                        h5_file_test = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + "_alto_" + str(j) + ".h5")
+                        if os.path.exists(h5_file_test):
+                            self.idxs_tonality[file_idx].append(j)  
+        if self.config.shift_tonality:
+            print(self.idxs_tonality)             
         self.total_size = int(len(self.idxs) * factor)
         logging.info("total dataset size: %d" %(self.total_size))
 
@@ -303,19 +333,40 @@ class AudioTrackDataset(Dataset):
         }
         """
         file_idx = self.idxs[index % len(self.idxs)]
-        h5_file_mixture = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + ".h5")
-        h5_file_source = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + "_" + self.config.sep_track + ".h5")
-        with h5py.File(h5_file_mixture, "r") as hr:
-            audio_name = hr["audio_name"][()].decode()
-            mixture = hr["waveform"][:]
+        if self.config.shift_tonality:
+            if self.eval_mode:
+                tonality = 0    
+            else:
+                tonality = random.choice(self.idxs_tonality[file_idx])
+            h5_file_source = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + "_" + self.config.sep_track + "_" + str(tonality) + ".h5")
+        else:
+            h5_file_source = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + "_" + self.config.sep_track + ".h5")
+        
         with h5py.File(h5_file_source, "r") as hr:
             source = hr["waveform"][:]
+            source_len = len(source)
+        mixture_names = build_mixture(self.config.mix_name)
+        audio_name = None
+        mixture = None
+
+        for mname in mixture_names:
+            if self.config.shift_tonality:
+                h5_file_mixture = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + "_" + mname + "_" + str(tonality) + ".h5")
+            else:
+                h5_file_mixture = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + "_" + mname + ".h5")
+            with h5py.File(h5_file_mixture, "r") as hr:
+                audio_name = hr["audio_name"][()].decode() + "_" + self.config.mix_name
+                if mixture is None:
+                    mixture = np.array(hr["waveform"][:source_len])
+                else:
+                    mixture = mixture + np.array(hr["waveform"][:source_len])
+        mixture = list(mixture)
         if self.eval_mode:
             bgn_f = 0
-            end_f = min(len(mixture), len(source)) # get the whole length
+            end_f = len(mixture) # get the whole length
             # bgn_f, end_f = self.sample_range[file_idx]
         else:
-            bgn_f, end_f = get_segment_bgn_end_frames(min(len(mixture), len(source)), self.config.hop_samples * self.config.segment_frames)
+            bgn_f, end_f = get_segment_bgn_end_frames(len(mixture), self.config.hop_samples * self.config.segment_frames)
         mixture = mixture[bgn_f:end_f]
         source = source[bgn_f:end_f]
         data_dict = {}

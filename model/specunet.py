@@ -416,6 +416,9 @@ class MCS_SpecUNet(pl.LightningModule):
             audio_name = batch["audio_name"][0]
             filename = os.path.join(test_output_path, self.config.dataset_name + "_" + audio_name + "_" + self.config.sep_track + ".wav")
             sf.write(filename, whole_pred, self.config.sample_rate)
+            filename = os.path.join(test_output_path, self.config.dataset_name + "_" + audio_name + "_" + self.config.mix_name + ".wav")
+            sf.write(filename, whole_mixture, self.config.sample_rate)
+
         return {"sdr": sdr}
 
     def validation_epoch_end(self, validation_step_outputs):
@@ -427,8 +430,8 @@ class MCS_SpecUNet(pl.LightningModule):
             median_sdr.append(np.median([dd[0][0] for dd in d["sdr"]]))
         mean_sdr = np.array(mean_sdr)
         median_sdr = np.array(median_sdr)
-        print("Each Mean SDR:", mean_sdr)
-        print("Each Median SDR:", median_sdr)
+        # print("Each Mean SDR:", mean_sdr)
+        # print("Each Median SDR:", median_sdr)
         # ddp 
         if torch.cuda.device_count() == 1:
             self.print("--------Single GPU----------")

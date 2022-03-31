@@ -1,7 +1,6 @@
 # Ke Chen
 # The Main Script
 
-from errno import EALREADY
 import os
 
 # this is to avoid the sdr calculation from occupying all cpus
@@ -18,6 +17,7 @@ import logging
 from tqdm import tqdm
 
 import torch
+
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
@@ -30,6 +30,7 @@ from model.convtasnet import MCS_ConvTasNet
 from model.byteresunet import MCS_DPIResUNet
 
 import pytorch_lightning as pl
+from pytorch_lightning.plugins import DDPPlugin
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 
@@ -100,7 +101,7 @@ def weight_average():
         wa_ckpt["state_dict"][key] = model_ckpt_key
     torch.save(wa_ckpt, config.wa_model_path)
 
-def process_audio(process_main_track = False, direct_process = False):
+def process_audio(process_main_track = False, direct_process = True):
     if direct_process:
         dataset_path = os.path.join(config.dataset_path, config.dataset_name)
         create_folder(os.path.join(dataset_path, "h5_file"))
@@ -203,7 +204,8 @@ def test():
         resume_from_checkpoint = None, #config.resume_checkpoint,
         replace_sampler_ddp = False,
         gradient_clip_val=5.0,
-        num_sanity_val_steps = 0
+        num_sanity_val_steps = 0,
+        plugins=DDPPlugin(find_unused_parameters=False)
     )
     model_type = eval(config.model_type)
     model = model_type(
@@ -294,7 +296,8 @@ def train():
         resume_from_checkpoint = None, #config.resume_checkpoint,
         replace_sampler_ddp = False,
         gradient_clip_val=5.0,
-        num_sanity_val_steps = 0
+        num_sanity_val_steps = 0,
+        plugins=DDPPlugin(find_unused_parameters=False)
     )
     model_type = eval(config.model_type)
     model = model_type(

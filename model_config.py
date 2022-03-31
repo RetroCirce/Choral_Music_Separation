@@ -2,16 +2,18 @@
 # Ke Chen
 # 2022.02.05
 
-exp_name = "vocal_dominus_tenor_specunet" # tasnet specunet
+exp_name = "string_ni_sop_specunet" # tasnet specunet
 workspace = "/home/kechen/Research/KE_MCS/"
 checkpointspace = "/projects/kechen/research/MCS/"
 test_output = "wav_output"
 
 
 dataset_path = "data/"
-dataset_name = "vocal_dominus" # CantoriaDatase
+dataset_name = "string_ni" # CantoriaDatase
 split_file = "idx_string_ni.npy"
-sep_track = "tenor"
+mix_name = "mix"
+shift_tonality = False
+sep_track = "soprano"
 model_type = "MCS_SpecUNet" # "MCS_ConvTasNet" # "MCS_SpecUNet" # "MCS_DPIResUNet"
 
 resume_checkpoint = None 

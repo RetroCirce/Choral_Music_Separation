@@ -416,8 +416,9 @@ class MCS_SpecUNet(pl.LightningModule):
             audio_name = batch["audio_name"][0]
             filename = os.path.join(test_output_path, self.config.dataset_name + "_" + audio_name + "_" + self.config.sep_track + ".wav")
             sf.write(filename, whole_pred, self.config.sample_rate)
-            filename = os.path.join(test_output_path, self.config.dataset_name + "_" + audio_name + "_" + self.config.mix_name + ".wav")
-            sf.write(filename, whole_mixture, self.config.sample_rate)
+            # for mix
+            # filename = os.path.join(test_output_path, self.config.dataset_name + "_" + audio_name + "_" + self.config.mix_name + ".wav")
+            # sf.write(filename, whole_mixture, self.config.sample_rate)
 
         return {"sdr": sdr}
 

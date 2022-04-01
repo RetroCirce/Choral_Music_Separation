@@ -31,6 +31,8 @@ def build_mixture(mixture_name):
         return ["alto","bass"]
     if mixture_name == "diff":
         return ["soprano", "tenor"]
+    if mixture_name == "realrealmix":
+        return ["mix"]
     return ["tenor","bass","soprano", "alto"]
 
 class ChoraleSingingDataset(Dataset):
@@ -354,6 +356,8 @@ class AudioTrackDataset(Dataset):
                 h5_file_mixture = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + "_" + mname + "_" + str(tonality) + ".h5")
             else:
                 h5_file_mixture = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + "_" + mname + ".h5")
+            if mname == "mix" and (not os.path.exists(h5_file_mixture)):
+                h5_file_mixture = os.path.join(self.dataset_path, "h5_file", "chorale_" + file_idx + ".h5")
             with h5py.File(h5_file_mixture, "r") as hr:
                 audio_name = hr["audio_name"][()].decode() + "_" + self.config.mix_name
                 if mixture is None:

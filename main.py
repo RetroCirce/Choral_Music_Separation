@@ -24,7 +24,7 @@ from torch.utils.data.distributed import DistributedSampler
 import model_config as config
 
 from utils import collect_fn, dump_config, create_folder, load_audio
-from data_generator import AudioTrackDataset, Cantoria_Dataset, DCS_Dataset, ChoraleSingingDataset, AneStringDataset
+from data_generator import BCBQDataset, AudioTrackDataset, Cantoria_Dataset, DCS_Dataset, ChoraleSingingDataset, AneStringDataset
 from model.specunet import MCS_SpecUNet
 from model.convtasnet import MCS_ConvTasNet
 from model.byteresunet import MCS_DPIResUNet
@@ -188,6 +188,13 @@ def test():
             factor=1,
             eval_mode=True
         )
+    elif config.dataset_name == "BCBQ":
+        eval_dataset = BCBQDataset(
+            dataset_name="BCBQ",
+            config=config,
+            factor=1,
+            eval_mode=True
+        )
     else:
         eval_dataset = AudioTrackDataset(
             idxs=validate_idxs,
@@ -289,6 +296,19 @@ def train():
         )
         eval_dataset = ChoraleSingingDataset(
             dataset_name="ChoraleSingingDataset",
+            config=config,
+            factor=1,
+            eval_mode=True
+        )
+    elif config.dataset_name == "BCBQ":
+        dataset = BCBQDataset(
+            dataset_name="BCBQ",
+            config=config,
+            factor=100,
+            eval_mode=False
+        )
+        eval_dataset = BCBQDataset(
+            dataset_name="BCBQ",
             config=config,
             factor=1,
             eval_mode=True

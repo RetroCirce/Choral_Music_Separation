@@ -2,25 +2,29 @@
 # Ke Chen
 # 2022.02.05
 
-exp_name = "bcbq_sop_specunet" # tasnet specunet
+exp_name = "ctd_synthsize_alto_specunet" # tasnet specunet
 workspace = "/home/kechen/Research/KE_MCS/"
 checkpointspace = "/projects/kechen/research/MCS/"
 test_output = "wav_output"
 
 
 dataset_path = "data/"
-dataset_name = "BCBQ" # BCBQ # CantoriaDatase # AneStringDataset #ChoraleSingingDataset
+dataset_name = "CantoriaDatase" # BCBQ # CantoriaDatase # AneStringDataset #ChoraleSingingDataset
 split_file = "idx_string_ni.npy"
 mix_name = "mix"
 shift_tonality = False
-sep_track = "soprano"
+sep_track = "alto"
 model_type = "MCS_SpecUNet" # "MCS_ConvTasNet" # "MCS_SpecUNet" # "MCS_DPIResUNet"
 
-resume_checkpoint = "/projects/kechen/research/MCS/results/vocal_vor_sop_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=17-mean_sdr=10.559-median_sdr=10.449.ckpt"
+resume_checkpoint = "/projects/kechen/research/MCS/results/synthsize_alto_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=69-mean_sdr=18.732-median_sdr=21.137.ckpt"
 # "/projects/kechen/research/MCS/results/vocal_vor_sop_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=17-mean_sdr=10.559-median_sdr=10.449.ckpt"
 #"/projects/kechen/research/MCS/results/string_emb_alto_specunet/checkpoint/lightning_logs/version_2/checkpoints/l-epoch=33-mean_sdr=13.426-median_sdr=13.784.ckpt"
 
-
+# synthsize midi
+# /projects/kechen/research/MCS/results/synthsize_alto_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=69-mean_sdr=18.732-median_sdr=21.137.ckpt
+# /projects/kechen/research/MCS/results/synthsize_bass_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=62-mean_sdr=15.894-median_sdr=16.696.ckpt
+# /projects/kechen/research/MCS/results/synthsize_sop_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=89-mean_sdr=21.609-median_sdr=23.795.ckpt
+# /projects/kechen/research/MCS/results/synthsize_tenor_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=91-mean_sdr=16.512-median_sdr=18.521.ckpt
 
 # performance string ni
 
@@ -75,7 +79,7 @@ loss_type = "mae"   # "si_snr" # "mae"
 debug = False
 
 batch_size = 8
-learning_rate = 5e-4 # 1e-3 1e-4
+learning_rate = 1e-4 # 1e-3 1e-4
 max_epoch = 100
 num_workers = 3
 lr_scheduler_epoch = [20, 40, 60]

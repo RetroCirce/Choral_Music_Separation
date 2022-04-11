@@ -317,7 +317,7 @@ def train():
         dataset = AudioTrackDataset(
             idxs=train_idxs,
             config=config,
-            factor=100,
+            factor=20,
             eval_mode=False
         )
         eval_dataset = AudioTrackDataset(

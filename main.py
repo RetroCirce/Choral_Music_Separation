@@ -265,7 +265,7 @@ def train():
         dataset = Cantoria_Dataset(
             dataset_name="CantoriaDatase",
             config=config,
-            factor=100,
+            factor=20,
             eval_mode=False
         )
         eval_dataset = Cantoria_Dataset(

@@ -376,17 +376,25 @@ class Cantoria_Dataset(Dataset):
         if self.eval_mode:
             factor = 1
             for k in self.idxs:
-                if k.endswith("CEA"):
+                if self.is_train_data(k, 3):
                     self.filelist.pop(k)
             self.idxs = list(self.filelist.keys())
         else:
             for k in self.idxs:
-                if not k.endswith("CEA"):
+                if not self.is_train_data(k, 3):
                     self.filelist.pop(k)
             self.idxs = list(self.filelist.keys())   
         self.total_size = int(len(self.filelist) * factor)
         logging.info("total dataset size: %d" %(self.total_size))
-    
+
+    def is_train_data(self, k, degree = 1): # 10% 40% 70%
+        if degree == 1:
+            return k.endswith("CEA")
+        elif degree == 2:
+            return k.endswith("CEA") or k.endswith("HCB") or k.endswith("LBM1") or k.endswith("LJT2") or k.endswith("YSM") or k.endswith("THM")
+        else:
+            return k.endswith("CEA") or k.endswith("HCB") or k.endswith("LBM1") or k.endswith("LJT2") or k.endswith("YSM") or k.endswith("THM") or k.endswith("SSS") or k.endswith("LNG")
+
     def parse_data(self, wav_file):
         words = wav_file.split("_")
         assert len(words) == 3, "the name format of the data is wrong!"

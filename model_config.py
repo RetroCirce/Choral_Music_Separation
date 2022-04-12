@@ -2,7 +2,7 @@
 # Ke Chen
 # 2022.02.05
 
-exp_name = "ctd_synthsize_alto_specunet" # tasnet specunet
+exp_name = "ctd_70_synthsize_alto_specunet" # tasnet specunet
 workspace = "/home/kechen/Research/KE_MCS/"
 checkpointspace = "/projects/kechen/research/MCS/"
 test_output = "wav_output"
@@ -16,7 +16,7 @@ shift_tonality = False
 sep_track = "alto"
 model_type = "MCS_SpecUNet" # "MCS_ConvTasNet" # "MCS_SpecUNet" # "MCS_DPIResUNet"
 
-resume_checkpoint = "/projects/kechen/research/MCS/results/synthsize_alto_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=69-mean_sdr=18.732-median_sdr=21.137.ckpt"
+resume_checkpoint = "/projects/kechen/research/MCS/results/ctd_70_synthsize_alto_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=64-mean_sdr=1.510-median_sdr=3.741.ckpt"
 # "/projects/kechen/research/MCS/results/vocal_vor_sop_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=17-mean_sdr=10.559-median_sdr=10.449.ckpt"
 #"/projects/kechen/research/MCS/results/string_emb_alto_specunet/checkpoint/lightning_logs/version_2/checkpoints/l-epoch=33-mean_sdr=13.426-median_sdr=13.784.ckpt"
 
@@ -30,7 +30,7 @@ resume_checkpoint = "/projects/kechen/research/MCS/results/synthsize_alto_specun
 
 
 # performance vor
-# "/projects/kechen/research/MCS/results/performance_vocal_vor_tenor_specunet/checkpoint/lightning_logs/version_1/checkpoints/l-epoch=90-mean_sdr=13.641-median_sdr=13.424.ckpt"
+# "/projects/kechen/resear bch/MCS/results/performance_vocal_vor_tenor_specunet/checkpoint/lightning_logs/version_1/checkpoints/l-epoch=90-mean_sdr=13.641-median_sdr=13.424.ckpt"
 # "/projects/kechen/research/MCS/results/performance_vocal_vor_alto_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=76-mean_sdr=11.231-median_sdr=10.921.ckpt"
 # "/projects/kechen/research/MCS/results/performance_vocal_vor_sop_specunet/checkpoint/lightning_logs/version_1/checkpoints/l-epoch=96-mean_sdr=12.648-median_sdr=12.436.ckpt"
 # "/projects/kechen/research/MCS/results/performance_vocal_vor_bass_specunet/checkpoint/lightning_logs/version_1/checkpoints/l-epoch=80-mean_sdr=10.769-median_sdr=10.672.ckpt"

@@ -64,17 +64,33 @@ class BCBQDataset(Dataset):
         if self.eval_mode:
             factor = 1
             for k in self.idxs:
-                if k.startswith("1_BC001"):
+                if self.is_train_data(k, 1): 
                     self.filelist.pop(k)
             self.idxs = list(self.filelist.keys())
         else:
             for k in self.idxs:
-                if not k.startswith("1_BC001"):
+                if not self.is_train_data(k, 1):
                     self.filelist.pop(k)
             self.idxs = list(self.filelist.keys())       
         self.total_size = int(len(self.filelist) * factor)
         logging.info("total dataset size: %d" %(self.total_size))
-    
+
+    def is_train_data(self, k, degree = 1): # 10% 40% 70%
+        if degree == 1:
+            return k.startswith("1_") or k.startswith("13_") or k.startswith("18_")
+        elif degree == 2:
+            return k.startswith("1_") or k.startswith("13_") or k.startswith("18_") or \
+                k.startswith("4_") or k.startswith("9_") or k.startswith("11_") or \
+                k.startswith("5_") or k.startswith("19_") or k.startswith("22_") or k.startswith("6_")
+        else:
+            return k.startswith("1_") or k.startswith("13_") or k.startswith("18_") or \
+                k.startswith("4_") or k.startswith("9_") or k.startswith("11_") or \
+                k.startswith("5_") or k.startswith("19_") or k.startswith("22_") or k.startswith("6_") or \
+                k.startswith("2_") or k.startswith("14_") or k.startswith("15_") or k.startswith("20_") or \
+                k.startswith("8_") or k.startswith("21_") or k.startswith("25_") or k.startswith("26_")
+
+
+
     def parse_data(self, wav_file):
         words = wav_file.split("_")
         assert len(words) == 5, "the name format of the data is wrong!"
@@ -303,7 +319,7 @@ class ChoraleSingingDataset(Dataset):
         elif degree == 2:
             return k.startswith("CSD_ER") or k.startswith("CSD_LI_1") or k.startswith("CSD_LI_2") 
         else:
-            return k.startswith("CSD_ER") or k.startswith("CSD_LI")
+            return k.startswith("CSD_ER") or k.startswith("CSD_LI_1") or k.startswith("CSD_LI_2") or k.startswith("CSD_ND_3") or k.startswith("CSD_ND_4") 
 
 
     def parse_data(self, wav_file):

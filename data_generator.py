@@ -284,18 +284,28 @@ class ChoraleSingingDataset(Dataset):
         if self.eval_mode:
             factor = 1
             for k in self.idxs:
-                if k.startswith("CSD_ER"):
+                if self.is_train_data(k, 3):
                     self.filelist.pop(k)
             self.idxs = list(self.filelist.keys())
         else:
             for k in self.idxs:
-                if not k.startswith("CSD_ER"):
+                if not self.is_train_data(k, 3):
                     self.filelist.pop(k)
             self.idxs = list(self.filelist.keys())   
             
         self.total_size = int(len(self.filelist) * factor)
         logging.info("total dataset size: %d" %(self.total_size))
     
+
+    def is_train_data(self, k, degree = 1): # 10% 40% 70%
+        if degree == 1:
+            return k.startswith("CSD_ER")
+        elif degree == 2:
+            return k.startswith("CSD_ER") or k.startswith("CSD_LI_1") or k.startswith("CSD_LI_2") 
+        else:
+            return k.startswith("CSD_ER") or k.startswith("CSD_LI")
+
+
     def parse_data(self, wav_file):
         words = wav_file.split("_")
         assert len(words) == 4, "the name format of the data is wrong!"

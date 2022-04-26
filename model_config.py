@@ -2,21 +2,21 @@
 # Ke Chen
 # 2022.02.05
 
-exp_name = "ctd_70_synthsize_alto_specunet" # tasnet specunet
+exp_name = "csd_70_performance_bass_specunet" # tasnet specunet
 workspace = "/home/kechen/Research/KE_MCS/"
 checkpointspace = "/projects/kechen/research/MCS/"
 test_output = "wav_output"
 
 
 dataset_path = "data/"
-dataset_name = "CantoriaDatase" # BCBQ # CantoriaDatase # AneStringDataset #ChoraleSingingDataset
+dataset_name = "ChoraleSingingDataset" # BCBQ # CantoriaDatase # AneStringDataset #ChoraleSingingDataset
 split_file = "idx_string_ni.npy"
 mix_name = "mix"
 shift_tonality = False
-sep_track = "alto"
+sep_track = "bass"
 model_type = "MCS_SpecUNet" # "MCS_ConvTasNet" # "MCS_SpecUNet" # "MCS_DPIResUNet"
 
-resume_checkpoint = "/projects/kechen/research/MCS/results/ctd_70_synthsize_alto_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=64-mean_sdr=1.510-median_sdr=3.741.ckpt"
+resume_checkpoint = "/projects/kechen/research/MCS/results/performance_vocal_vor_bass_specunet/checkpoint/lightning_logs/version_1/checkpoints/l-epoch=80-mean_sdr=10.769-median_sdr=10.672.ckpt"
 # "/projects/kechen/research/MCS/results/vocal_vor_sop_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=17-mean_sdr=10.559-median_sdr=10.449.ckpt"
 #"/projects/kechen/research/MCS/results/string_emb_alto_specunet/checkpoint/lightning_logs/version_2/checkpoints/l-epoch=33-mean_sdr=13.426-median_sdr=13.784.ckpt"
 
@@ -79,7 +79,7 @@ loss_type = "mae"   # "si_snr" # "mae"
 debug = False
 
 batch_size = 8
-learning_rate = 1e-4 # 1e-3 1e-4
+learning_rate = 1e-3 # 1e-3 1e-4
 max_epoch = 100
 num_workers = 3
 lr_scheduler_epoch = [20, 40, 60]

@@ -265,7 +265,7 @@ def train():
         dataset = Cantoria_Dataset(
             dataset_name="CantoriaDatase",
             config=config,
-            factor=20,
+            factor=20, # 100 40 20
             eval_mode=False
         )
         eval_dataset = Cantoria_Dataset(
@@ -291,7 +291,7 @@ def train():
         dataset = ChoraleSingingDataset(
             dataset_name="ChoraleSingingDataset",
             config=config,
-            factor=100,
+            factor=40,
             eval_mode=False
         )
         eval_dataset = ChoraleSingingDataset(

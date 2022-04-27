@@ -111,6 +111,13 @@ dependencies:
   - zipp=3.4.0=pyhd3eb1b0_0
   - zlib=1.2.11=h7b6447c_3
   - pip:
+    - torch==1.10.1
+    - torch-tb-profiler==0.2.1
+    - torchaudio==0.10.1
+    - torchcontrib==0.0.2
+    - torchlibrosa==0.0.9
+    - torchmetrics==0.6.0
+    - torchvision==0.11.2
     - absl-py==0.12.0
     - aiohttp==3.7.4.post0
     - appdirs==1.4.4
@@ -202,13 +209,6 @@ dependencies:
     - termcolor==1.1.0
     - threadpoolctl==2.2.0
     - toml==0.10.2
-    - torch==1.10.1
-    - torch-tb-profiler==0.2.1
-    - torchaudio==0.10.1
-    - torchcontrib==0.0.2
-    - torchlibrosa==0.0.9
-    - torchmetrics==0.6.0
-    - torchvision==0.11.2
     - tqdm==4.47.0
     - typing-extensions==4.1.1
     - urllib3==1.26.4

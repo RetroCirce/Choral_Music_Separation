@@ -304,7 +304,7 @@ def train():
         dataset = BCBQDataset(
             dataset_name="BCBQ",
             config=config,
-            factor=100,
+            factor=30,
             eval_mode=False
         )
         eval_dataset = BCBQDataset(

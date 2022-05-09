@@ -64,12 +64,12 @@ class BCBQDataset(Dataset):
         if self.eval_mode:
             factor = 1
             for k in self.idxs:
-                if self.is_train_data(k, 1): 
+                if self.is_train_data(k, 3): 
                     self.filelist.pop(k)
             self.idxs = list(self.filelist.keys())
         else:
             for k in self.idxs:
-                if not self.is_train_data(k, 1):
+                if not self.is_train_data(k, 3):
                     self.filelist.pop(k)
             self.idxs = list(self.filelist.keys())       
         self.total_size = int(len(self.filelist) * factor)

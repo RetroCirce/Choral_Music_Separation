@@ -59,5 +59,7 @@ def get_loss_func(loss_type):
         return mae
     elif loss_type == 'si_snr':
         return max_si_snr
+    elif loss_type == 'mse':
+        return torch.nn.MSELoss()
     else:
         raise Exception('Incorrect loss_type!')

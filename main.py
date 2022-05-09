@@ -28,6 +28,7 @@ from data_generator import BCBQDataset, AudioTrackDataset, Cantoria_Dataset, DCS
 from model.specunet import MCS_SpecUNet
 from model.convtasnet import MCS_ConvTasNet
 from model.byteresunet import MCS_DPIResUNet
+from model.waveunet import MCS_Waveunet
 
 import pytorch_lightning as pl
 from pytorch_lightning.plugins import DDPPlugin
@@ -206,7 +207,7 @@ def test():
     audioset_data = data_prep(train_dataset=eval_dataset,eval_dataset=eval_dataset,device_num=device_num, config=config)
    
     trainer = pl.Trainer(
-        deterministic=True,
+        # deterministic=True,
         default_root_dir = checkpoint_dir,
         gpus = device_num,
         # val_check_interval = 1,
@@ -336,7 +337,7 @@ def train():
     )
    
     trainer = pl.Trainer(
-        deterministic=True,
+        # deterministic=True,
         default_root_dir = checkpoint_dir,
         gpus = device_num,
         # val_check_interval = 1,

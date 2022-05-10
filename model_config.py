@@ -2,14 +2,14 @@
 # Ke Chen
 # 2022.02.05
 
-exp_name = "piano_noire_alto_waveunet" # tasnet specunet
+exp_name = "vocal_vor_alto_waveunet" # tasnet specunet
 workspace = "/home/kechen/Research/KE_MCS/"
 checkpointspace = "/projects/kechen/research/MCS/"
 test_output = "wav_output"
 
 
 dataset_path = "data/"
-dataset_name = "piano_noire" # BCBQ # CantoriaDatase # AneStringDataset #ChoraleSingingDataset
+dataset_name = "vocal_vor" # BCBQ # CantoriaDatase # AneStringDataset #ChoraleSingingDataset
 split_file = "idx_string_ni.npy"
 mix_name = "mix"
 shift_tonality = False
@@ -110,9 +110,9 @@ resunet_reduce_lr_steps = 15000
 # waveunet
 waveunet_kernel = 5
 waveunet_depth = 1
-waveunet_stride = 4
+waveunet_stride = 2
 waveunet_blocks = 6
-waveunet_features = [32, 64, 128, 256, 512, 1024]
+waveunet_features = [32, 64, 128, 256, 512, 512, 1024, 2048, 2048]
 waveunet_res = "fixed"
 waveunet_convtype = "gn"
 waveunet_length = 22050 * 2

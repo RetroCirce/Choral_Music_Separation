@@ -2,22 +2,22 @@
 # Ke Chen
 # 2022.02.05
 
-exp_name = "vocal_vor_alto_waveunet" # tasnet specunet
+exp_name = "error_bar_test" # tasnet specunet
 workspace = "/home/kechen/Research/KE_MCS/"
 checkpointspace = "/projects/kechen/research/MCS/"
 test_output = "wav_output"
 
 
 dataset_path = "data/"
-dataset_name = "vocal_vor" # BCBQ # CantoriaDatase # AneStringDataset #ChoraleSingingDataset
+dataset_name = "BCBQ" # BCBQ # CantoriaDatase # AneStringDataset #ChoraleSingingDataset
 split_file = "idx_string_ni.npy"
 mix_name = "mix"
 shift_tonality = False
 sep_track = "alto"
-model_type = "MCS_Waveunet" 
+model_type = "MCS_SpecUNet" 
 # "MCS_ConvTasNet" # "MCS_SpecUNet" # "MCS_DPIResUNet" # "MCS_Waveunet"
 
-resume_checkpoint = None
+resume_checkpoint = "/projects/kechen/research/MCS/results/bcbq_70_performance_alto_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=14-mean_sdr=8.485-median_sdr=8.407.ckpt"
 # "/projects/kechen/research/MCS/results/vocal_vor_sop_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=17-mean_sdr=10.559-median_sdr=10.449.ckpt"
 #"/projects/kechen/research/MCS/results/string_emb_alto_specunet/checkpoint/lightning_logs/version_2/checkpoints/l-epoch=33-mean_sdr=13.426-median_sdr=13.784.ckpt"
 
@@ -75,14 +75,14 @@ resume_checkpoint = None
 # "/home/kechen/Research/KE_MCS/results/piano_noire_bass_tasnet/checkpoint/lightning_logs/version_1/checkpoints/l-epoch=39-mean_sdr=10.285-median_sdr=11.097.ckpt"
 
 
-loss_type = "mse"   # "si_snr" # "mae" # "mse"
+loss_type = "mae"   # "si_snr" # "mae" # "mse"
 
 debug = False
 
 batch_size = 8
-learning_rate = 1e-4 # 1e-3 1e-4
+learning_rate = 1e-3 # 1e-3 1e-4
 max_epoch = 100
-num_workers = 3
+num_workers = 0
 lr_scheduler_epoch = [20, 40, 60]
 latent_dim = 2048 # deprecated
  
@@ -112,7 +112,7 @@ waveunet_kernel = 5
 waveunet_depth = 1
 waveunet_stride = 2
 waveunet_blocks = 6
-waveunet_features = [32, 64, 128, 256, 512, 512, 1024, 2048, 2048]
+waveunet_features = [32, 64, 128, 256, 512, 1024]
 waveunet_res = "fixed"
 waveunet_convtype = "gn"
 waveunet_length = 22050 * 2

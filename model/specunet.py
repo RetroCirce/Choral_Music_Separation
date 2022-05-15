@@ -411,11 +411,11 @@ class MCS_SpecUNet(pl.LightningModule):
                     preds = preds.view(-1).data.cpu().numpy().tolist()
                     whole_pred += preds
                 sdr += temp_sdr
-        if self.wav_output:
-            test_output_path = os.path.join(self.config.workspace, self.config.test_output)
-            audio_name = batch["audio_name"][0]
-            filename = os.path.join(test_output_path, self.config.dataset_name + "_" + audio_name + "_" + self.config.sep_track + ".wav")
-            sf.write(filename, whole_pred, self.config.sample_rate)
+        # if self.wav_output:
+        #     test_output_path = os.path.join(self.config.workspace, self.config.test_output)
+        #     audio_name = batch["audio_name"][0]
+        #     filename = os.path.join(test_output_path, self.config.dataset_name + "_" + audio_name + "_" + self.config.sep_track + ".wav")
+        #     sf.write(filename, whole_pred, self.config.sample_rate)
             # for mix
             # filename = os.path.join(test_output_path, self.config.dataset_name + "_" + audio_name + "_" + self.config.mix_name + ".wav")
             # sf.write(filename, whole_mixture, self.config.sample_rate)
@@ -432,7 +432,7 @@ class MCS_SpecUNet(pl.LightningModule):
         mean_sdr = np.array(mean_sdr)
         median_sdr = np.array(median_sdr)
         # print("Each Mean SDR:", mean_sdr)
-        # print("Each Median SDR:", median_sdr)
+        print("Each Median SDR:", np.percentile(median_sdr, 25), np.percentile(median_sdr, 75))
         # ddp 
         if torch.cuda.device_count() == 1:
             self.print("--------Single GPU----------")

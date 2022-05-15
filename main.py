@@ -207,7 +207,7 @@ def test():
     audioset_data = data_prep(train_dataset=eval_dataset,eval_dataset=eval_dataset,device_num=device_num, config=config)
    
     trainer = pl.Trainer(
-        # deterministic=True,
+        deterministic=True,
         default_root_dir = checkpoint_dir,
         gpus = device_num,
         # val_check_interval = 1,
@@ -337,7 +337,7 @@ def train():
     )
    
     trainer = pl.Trainer(
-        # deterministic=True,
+        deterministic=True,
         default_root_dir = checkpoint_dir,
         gpus = device_num,
         # val_check_interval = 1,

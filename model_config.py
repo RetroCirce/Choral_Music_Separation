@@ -94,10 +94,10 @@ loss_type = "mae"   # "si_snr" # "mae" # "mse"
 
 debug = False
 
-batch_size = 24
-learning_rate = 1e-4 # 1e-3 1e-4
+batch_size = 8
+learning_rate = 1e-3 # 1e-3 1e-4
 max_epoch = 100
-num_workers = 3
+num_workers = 0
 lr_scheduler_epoch = [20, 40, 60]
 latent_dim = 2048 # deprecated
  

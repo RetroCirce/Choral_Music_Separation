@@ -1,5 +1,7 @@
 # Ke Chen
 
+from pickletools import optimize
+from sched import scheduler
 import numpy as np
 import torch
 from torch import nn as nn
@@ -316,7 +318,7 @@ class DownsamplingBlock(nn.Module):
         return curr_size
 
 class MCS_Waveunet(pl.LightningModule):
-    def __init__(self, channels, config, dataset):
+    def __init__(self, channels, config, dataset, wav_output = False):
         super(MCS_Waveunet, self).__init__()
 
         self.dataset = dataset
@@ -330,6 +332,7 @@ class MCS_Waveunet(pl.LightningModule):
         self.depth = config.waveunet_depth
         self.instruments = ["ALL"]
         self.separate = False
+        self.init_opt = False
         res = config.waveunet_res
         conv_type = config.waveunet_convtype
         # Only odd filter kernels allowed
@@ -567,11 +570,19 @@ class MCS_Waveunet(pl.LightningModule):
         self.validation_epoch_end(test_step_outputs)             
 
     def configure_optimizers(self):
+
+        if (not self.init_opt) and (self.config.resume_checkpoint is not None):
+            print("*******load opt and lr scheduler************")
+            ckpt = torch.load(self.config.resume_checkpoint, map_location="cpu")
+
+
         optimizer = optim.Adam(
             self.parameters(), lr = self.config.learning_rate, 
             betas = (0.9, 0.999), eps = 1e-08, weight_decay = 0., amsgrad = True
         )
 
+        if (not self.init_opt) and (self.config.resume_checkpoint is not None):
+            optimizer.load_state_dict(ckpt["optimizer_states"][0])
         # scheduler=optim.lr_scheduler.CyclicLR(optimizer=optimizer,
         #     base_lr=1e-7, max_lr=self.config.learning_rate,
         #     step_size_up=2000, step_size_down=2000,
@@ -582,6 +593,12 @@ class MCS_Waveunet(pl.LightningModule):
             optimizer=optimizer, mode="max",
             factor=0.65, patience=3,verbose=True
         )
+
+        if (not self.init_opt) and (self.config.resume_checkpoint is not None):
+            scheduler.load_state_dict(ckpt["optimizer_states"][0])
+        
+        self.init_opt = True
+
         cop_dict = {
             "optimizer": optimizer,
             "lr_scheduler": {
@@ -589,5 +606,4 @@ class MCS_Waveunet(pl.LightningModule):
                 "monitor": "mean_sdr"
             }
         } 
-
         return cop_dict

@@ -2,22 +2,37 @@
 # Ke Chen
 # 2022.02.05
 
-exp_name = "vocal_vor_alto_waveunet" # tasnet specunet
-workspace = "/home/kechen/Research/KE_MCS/"
-checkpointspace = "/projects/kechen/research/MCS/"
+exp_name = "synthesize_urmp_bass_specunet" # tasnet specunet
+workspace = "/home/la/kechen/Research/KE_MCS/"
+checkpointspace = "/home/la/kechen/Research/KE_MCS/"
 test_output = "wav_output"
 
 
 dataset_path = "data/"
-dataset_name = "vocal_vor" # BCBQ # CantoriaDatase # AneStringDataset #ChoraleSingingDataset
+dataset_name = "urmp" # BCBQ # CantoriaDatase # AneStringDataset #ChoraleSingingDataset
 split_file = "idx_string_ni.npy"
 mix_name = "mix"
-shift_tonality = False
-sep_track = "alto"
-model_type = "MCS_Waveunet" 
+shift_tonality = True
+sep_track = "bass"
+model_type = "MCS_SpecUNet" 
 # "MCS_ConvTasNet" # "MCS_SpecUNet" # "MCS_DPIResUNet" # "MCS_Waveunet"
+ 
+resume_checkpoint = "/home/la/kechen/Research/KE_MCS/synthesized_midi_model/bass/l-epoch=62-mean_sdr=15.894-median_sdr=16.696.ckpt"
+# "/home/la/kechen/Research/KE_MCS/results/string_emb_sop_specunet/checkpoint/lightning_logs/version_1/checkpoints/l-epoch=70-mean_sdr=10.722-median_sdr=11.067.ckpt"
 
-resume_checkpoint = None
+# performance_string_emb
+# "/home/la/kechen/Research/KE_MCS/results/performance_string_emb_alto_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=79-mean_sdr=13.351-median_sdr=13.478.ckpt"
+# "/home/la/kechen/Research/KE_MCS/results/performance_string_emb_bass_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=70-mean_sdr=11.887-median_sdr=12.540.ckpt"
+# "/home/la/kechen/Research/KE_MCS/results/performance_string_emb_sop_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=110-mean_sdr=11.562-median_sdr=12.289.ckpt"
+# "/home/la/kechen/Research/KE_MCS/results/performance_string_emb_tenor_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=78-mean_sdr=11.695-median_sdr=12.046.ckpt"
+
+# string emb
+# "/home/la/kechen/Research/KE_MCS/results/string_emb_alto_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=55-mean_sdr=12.205-median_sdr=12.711.ckpt"
+# "/home/la/kechen/Research/KE_MCS/results/string_emb_bass_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=43-mean_sdr=12.084-median_sdr=12.251.ckpt"
+# "/home/la/kechen/Research/KE_MCS/results/string_emb_sop_specunet/checkpoint/lightning_logs/version_1/checkpoints/l-epoch=70-mean_sdr=10.722-median_sdr=11.067.ckpt"
+# "/home/la/kechen/Research/KE_MCS/results/string_emb_tenor_specunet/checkpoint/lightning_logs/version_1/checkpoints/l-epoch=92-mean_sdr=11.523-median_sdr=12.118.ckpt"
+
+
 # "/projects/kechen/research/MCS/results/vocal_vor_sop_specunet/checkpoint/lightning_logs/version_0/checkpoints/l-epoch=17-mean_sdr=10.559-median_sdr=10.449.ckpt"
 #"/projects/kechen/research/MCS/results/string_emb_alto_specunet/checkpoint/lightning_logs/version_2/checkpoints/l-epoch=33-mean_sdr=13.426-median_sdr=13.784.ckpt"
 
@@ -75,11 +90,11 @@ resume_checkpoint = None
 # "/home/kechen/Research/KE_MCS/results/piano_noire_bass_tasnet/checkpoint/lightning_logs/version_1/checkpoints/l-epoch=39-mean_sdr=10.285-median_sdr=11.097.ckpt"
 
 
-loss_type = "mse"   # "si_snr" # "mae" # "mse"
+loss_type = "mae"   # "si_snr" # "mae" # "mse"
 
 debug = False
 
-batch_size = 8
+batch_size = 24
 learning_rate = 1e-4 # 1e-3 1e-4
 max_epoch = 100
 num_workers = 3
@@ -110,9 +125,9 @@ resunet_reduce_lr_steps = 15000
 # waveunet
 waveunet_kernel = 5
 waveunet_depth = 1
-waveunet_stride = 2
+waveunet_stride = 4
 waveunet_blocks = 6
-waveunet_features = [32, 64, 128, 256, 512, 512, 1024, 2048, 2048]
+waveunet_features = [32, 64, 128, 256, 512, 1024]
 waveunet_res = "fixed"
 waveunet_convtype = "gn"
 waveunet_length = 22050 * 2

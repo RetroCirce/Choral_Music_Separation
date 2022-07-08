@@ -116,6 +116,7 @@ create_folder(render_path)
 midi_files = list(set(d[:config.global_config["general_name_length"]] for d in os.listdir(dataset_path)))
 midi_files.sort()
 
+
 for midi_file in midi_files:
     for i in range(0, 12):
         path_tidx = os.path.join(dataset_path, midi_file + "_alto_" + str(i) + ".mid")

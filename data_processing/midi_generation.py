@@ -122,10 +122,13 @@ def add_word_control(instrument, phrase_range, words):
             sta = 0
         if end < 0:
             end = phrase_indent * 0.1
-        word = random.choice(words)
+        if random.random() < 0.25:
+            word = words[0]
+        else:
+            word = random.choice(words)
         new_notes.append(
             pyd.Note(
-                100, word, sta, end
+                127, word, sta, end
             )
         )
     return new_notes

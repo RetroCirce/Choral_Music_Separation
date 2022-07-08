@@ -24,10 +24,11 @@ from torch.utils.data.distributed import DistributedSampler
 import model_config as config
 
 from utils import collect_fn, dump_config, create_folder, load_audio
-from data_generator import BCBQDataset, AudioTrackDataset, Cantoria_Dataset, DCS_Dataset, ChoraleSingingDataset, AneStringDataset
+from data_generator import BCBQDataset, AudioTrackDataset, Cantoria_Dataset, DCS_Dataset, ChoraleSingingDataset, AneStringDataset, URMPDataset
 from model.specunet import MCS_SpecUNet
 from model.convtasnet import MCS_ConvTasNet
 from model.byteresunet import MCS_DPIResUNet
+from model.waveunet import MCS_Waveunet
 
 import pytorch_lightning as pl
 from pytorch_lightning.plugins import DDPPlugin
@@ -195,6 +196,13 @@ def test():
             factor=1,
             eval_mode=True
         )
+    elif config.dataset_name == "urmp":
+        eval_dataset = URMPDataset(
+            dataset_name="urmp",
+            config=config,
+            factor=1,
+            eval_mode=True
+        )
     else:
         eval_dataset = AudioTrackDataset(
             idxs=validate_idxs,
@@ -206,7 +214,7 @@ def test():
     audioset_data = data_prep(train_dataset=eval_dataset,eval_dataset=eval_dataset,device_num=device_num, config=config)
    
     trainer = pl.Trainer(
-        deterministic=True,
+        # deterministic=True,
         default_root_dir = checkpoint_dir,
         gpus = device_num,
         # val_check_interval = 1,
@@ -304,7 +312,7 @@ def train():
         dataset = BCBQDataset(
             dataset_name="BCBQ",
             config=config,
-            factor=100,
+            factor=30,
             eval_mode=False
         )
         eval_dataset = BCBQDataset(
@@ -313,11 +321,24 @@ def train():
             factor=1,
             eval_mode=True
         )
+    elif config.dataset_name == "urmp":
+        dataset = URMPDataset(
+            dataset_name="urmp",
+            config=config,
+            factor=100,
+            eval_mode=False
+        )
+        eval_dataset = URMPDataset(
+            dataset_name="urmp",
+            config=config,
+            factor=1,
+            eval_mode=True
+        )
     else:
         dataset = AudioTrackDataset(
             idxs=train_idxs,
             config=config,
-            factor=20,
+            factor=100,
             eval_mode=False
         )
         eval_dataset = AudioTrackDataset(
@@ -336,7 +357,7 @@ def train():
     )
    
     trainer = pl.Trainer(
-        deterministic=True,
+        # deterministic=True,
         default_root_dir = checkpoint_dir,
         gpus = device_num,
         # val_check_interval = 1,
@@ -362,7 +383,7 @@ def train():
         ckpt = torch.load(config.resume_checkpoint, map_location="cpu")
         model.load_state_dict(ckpt["state_dict"])
     # trainer.test(model, datamodule = audioset_data)
-    trainer.fit(model, audioset_data)
+    trainer.fit(model, datamodule=audioset_data)
 
 def main():
     parser = argparse.ArgumentParser(description="latent genreal source separation parser")

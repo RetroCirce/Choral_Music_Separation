@@ -1,4 +1,4 @@
-# Chorale_Music_Separation
+# Chorale Music Separation
  
 This is the official implementation repository of "Improving Choral Music Separation through Expressive Synthesized Data from Sampled Instruments", ISMIR 2022.
 
